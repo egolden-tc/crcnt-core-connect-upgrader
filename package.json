@@ -1,0 +1,14 @@
+{
+  "name": "crcnt-core-connect-upgrader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sfdx-node": "^3.1.0"
+  }
+}
