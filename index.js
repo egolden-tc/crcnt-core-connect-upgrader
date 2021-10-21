@@ -151,6 +151,7 @@ const generateCustomMetadataXml = async () => {
 
 (async () => {
   // create temporary folders
+
   try {
     await fsPromises.mkdir("./temp");
   } catch (e) {
@@ -239,18 +240,18 @@ const generateCustomMetadataXml = async () => {
     deploydir: "./temp/cards",
     _quiet: false
   });
-  // delete Data Sources
-  await sfdx.force.mdapi.deploy({
-    wait: 30,
-    targetusername: SANDBOX_ALIAS,
-    deploydir: "./temp/sources",
-    _quiet: false
-  });
   // delete Data Services
   await sfdx.force.mdapi.deploy({
     wait: 30,
     targetusername: SANDBOX_ALIAS,
     deploydir: "./temp/services",
+    _quiet: false
+  });
+  // delete Data Sources
+  await sfdx.force.mdapi.deploy({
+    wait: 30,
+    targetusername: SANDBOX_ALIAS,
+    deploydir: "./temp/sources",
     _quiet: false
   });
 
@@ -284,21 +285,25 @@ const generateCustomMetadataXml = async () => {
     targetusername: DEVHUB_ALIAS,
     usetoolingapi: true,
     json: true,
-    query: `SELECT Id,SubscriberPackageVersionId,BuildNumber,Description,IsReleased,MajorVersion,MinorVersion,Name,Package2Id,PatchVersion FROM Package2Version WHERE Package2.Name = '${PACKAGE_NAME}' AND IsReleased=TRUE ORDER BY MajorVersion DESC,MinorVersion DESC,PatchVersion DESC, BuildNumber DESC LIMIT 1`,
+    query: `SELECT Id,SubscriberPackageVersionId,BuildNumber,Description,IsReleased,MajorVersion,MinorVersion,Name,Package2Id,PatchVersion FROM Package2Version WHERE Package2.Name = '${PACKAGE_NAME}' ORDER BY MajorVersion DESC,MinorVersion DESC,PatchVersion DESC, BuildNumber DESC LIMIT 1`,
     _quiet: false
   });
-  console.log(coreConnectPackageVersion);
   const latestPackageId =
     coreConnectPackageVersion.records[0].SubscriberPackageVersionId;
 
-  await sfdx.force.package.install({
-    installationkey: INSTALL_KEY,
+  const installOptions = {
     package: latestPackageId,
     noprompt: true,
     targetusername: SANDBOX_ALIAS,
     wait: 30,
     _quiet: false
-  });
+  };
+
+  if (!NAMESPACE.includes("alpha")) {
+    installOptions.installationkey = INSTALL_KEY;
+  }
+
+  await sfdx.force.package.install(installOptions);
 
   // Re-assign permission sets
   for (const psa of permSetAssignments.records) {
