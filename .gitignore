@@ -1,3 +1,6 @@
 node_modules
+temp
+customMetadataBackup
+
 .sfdx
 .vscode
