@@ -165,6 +165,10 @@ const generateCustomMetadataXml = async () => {
     query: `SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'`
   });
 
+  // query metadata that references
+  //SELECT Id,MetadataComponentId,MetadataComponentName,MetadataComponentType,RefMetadataComponentName,RefMetadataComponentType FROM MetadataComponentDependency WHERE RefMetadataComponentNamespace = 'dcorealpha'
+  // Display warning/error asking user to
+
   // remove permission set assignments
   for (const psa of permSetAssignments.records) {
     await sfdx.force.data.recordDelete({
