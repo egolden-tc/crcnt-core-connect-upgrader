@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "fix:dependencies": "node removeDeps.js",
     "upgrade": "git config pull.rebase false && git pull && npm i && node index.js"
   },
   "author": "",
