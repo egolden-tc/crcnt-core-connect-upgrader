@@ -162,7 +162,8 @@ const generateCustomMetadataXml = async () => {
   const permSetAssignments = await sfdx.force.data.soqlQuery({
     targetusername: SANDBOX_ALIAS,
     json: true,
-    query: `SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'`
+    query: `SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'`,
+    _quiet: false
   });
 
   // query metadata that references
@@ -268,7 +269,8 @@ const generateCustomMetadataXml = async () => {
     usetoolingapi: true,
     json: true,
     query:
-      "SELECT Id,SubscriberPackage.Name,SubscriberPackageId,SubscriberPackageVersion.Id FROM InstalledSubscriberPackage"
+      "SELECT Id,SubscriberPackage.Name,SubscriberPackageId,SubscriberPackageVersion.Id FROM InstalledSubscriberPackage",
+    _quiet: false
   });
   const coreConnectInstalledVersionId = installedPackages.records.filter(
     result => {
