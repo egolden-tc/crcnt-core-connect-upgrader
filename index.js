@@ -1,5 +1,4 @@
 require("dotenv").config();
-const sfdx = require("sfdx-node");
 const fs = require("fs");
 const fsPromises = fs.promises;
 const xml2js = require("xml2js");
@@ -157,7 +156,7 @@ const generateCustomMetadataXml = async () => {
   } catch (e) {
     //console.warn(e);
   }
-
+  /*
   // retrieve permission set assignments
   const permSetAssignments = await sfdx.force.data.soqlQuery({
     targetusername: SANDBOX_ALIAS,
@@ -179,6 +178,7 @@ const generateCustomMetadataXml = async () => {
       _quiet: false
     });
   }
+  
 
   // retrieve latest account page and backup
   // Backing Up Account Page
@@ -195,6 +195,7 @@ const generateCustomMetadataXml = async () => {
     deploydir: "./manifests/BlankAccountPage",
     _quiet: false
   });
+  */
 
   // retrieve all non-namespaced Cards
   console.log("Retrieving list of Core Connect metadata to backup.");
