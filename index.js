@@ -119,9 +119,12 @@ const getPackageFile = listOfMembers => {
 };
 (async () => {
   // make temp directory if not exist
-  execSync(`mkdir -p ${convertUnixPathToWindows("./temp")}`, {
-    stdio: "inherit"
-  });
+  execSync(
+    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows("./temp")}`,
+    {
+      stdio: "inherit"
+    }
+  );
   // retrieve perm permSetAssignments
   console.log("Backing up permission set assignments");
   execSync(
@@ -355,9 +358,14 @@ const getPackageFile = listOfMembers => {
   // full list for retrieve
 
   // kvm
-  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/kvm")}`, {
-    stdio: "inherit"
-  });
+  execSync(
+    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+      "./temp/kvm"
+    )}`,
+    {
+      stdio: "inherit"
+    }
+  );
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/kvm/package.xml"),
     EMPTY_PACKAGE_XML
@@ -373,9 +381,14 @@ const getPackageFile = listOfMembers => {
     )
   );
   // actiom defs
-  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/actions")}`, {
-    stdio: "inherit"
-  });
+  execSync(
+    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+      "./temp/actions"
+    )}`,
+    {
+      stdio: "inherit"
+    }
+  );
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/actions/package.xml"),
     EMPTY_PACKAGE_XML
@@ -392,9 +405,14 @@ const getPackageFile = listOfMembers => {
   );
 
   // config items
-  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/items")}`, {
-    stdio: "inherit"
-  });
+  execSync(
+    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+      "./temp/items"
+    )}`,
+    {
+      stdio: "inherit"
+    }
+  );
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/items/package.xml"),
     EMPTY_PACKAGE_XML
@@ -411,9 +429,14 @@ const getPackageFile = listOfMembers => {
   );
 
   // Cards
-  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/cards")}`, {
-    stdio: "inherit"
-  });
+  execSync(
+    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+      "./temp/cards"
+    )}`,
+    {
+      stdio: "inherit"
+    }
+  );
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/cards/package.xml"),
     EMPTY_PACKAGE_XML
@@ -430,9 +453,14 @@ const getPackageFile = listOfMembers => {
   );
 
   // data services
-  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/services")}`, {
-    stdio: "inherit"
-  });
+  execSync(
+    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+      "./temp/services"
+    )}`,
+    {
+      stdio: "inherit"
+    }
+  );
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/services/package.xml"),
     EMPTY_PACKAGE_XML
@@ -447,9 +475,14 @@ const getPackageFile = listOfMembers => {
   );
 
   // data sources
-  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/sources")}`, {
-    stdio: "inherit"
-  });
+  execSync(
+    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+      "./temp/sources"
+    )}`,
+    {
+      stdio: "inherit"
+    }
+  );
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/sources/package.xml"),
     EMPTY_PACKAGE_XML
