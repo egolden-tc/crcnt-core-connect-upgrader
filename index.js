@@ -111,23 +111,43 @@ const getPackageFile = listOfMembers => {
 };
 (async () => {
   // make temp directory if not exist
-  execSync("mkdir -p ./temp");
+  execSync("mkdir -p ./temp", { stdio: "inherit" });
   // retrieve perm permSetAssignments
   console.log("Backing up permission set assignments");
   execSync(
-    `sfdx force:data:soql:query -q "SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'" -r csv -u ${SANDBOX_ALIAS} > ./temp/permSetAssignments.csv`
+    `sfdx force:data:soql:query -q "SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'" -r csv -u ${SANDBOX_ALIAS} > ./temp/permSetAssignments.csv`,
+    { stdio: "inherit" }
   );
-  // delete perm set assignments
-  console.log("Deleting permission set assignments");
-  execSync(
-    `sfdx force:data:bulk:delete -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ./temp/permSetAssignments.csv -w 30`
-  );
+
+  const hasPermSets =
+    (
+      await fsPromises.readFile("./temp/permSetAssignments.csv", {
+        encoding: "utf-8"
+      })
+    )?.trim().length > 0;
+  if (hasPermSets) {
+    // delete perm set assignments
+    console.log("Deleting permission set assignments");
+    execSync(
+      `sfdx force:data:bulk:delete -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ./temp/permSetAssignments.csv -w 30`,
+      { stdio: "inherit" }
+    );
+  }
   console.log("Identifying dependencies");
   execSync(
-    `sfdx force:data:soql:query -u ${SANDBOX_ALIAS} --usetoolingapi -q "SELECT MetadataComponentName,MetadataComponentType,RefMetadataComponentName,RefMetadataComponentType FROM MetadataComponentDependency WHERE RefMetadataComponentNamespace = '${NAMESPACE}'" --json > ./temp/dependencies.json`
+    `sfdx force:data:soql:query -u ${SANDBOX_ALIAS} --usetoolingapi -q "SELECT MetadataComponentName,MetadataComponentType,RefMetadataComponentName,RefMetadataComponentType FROM MetadataComponentDependency WHERE RefMetadataComponentNamespace = '${NAMESPACE}'" --json > ./temp/dependencies.json`,
+    { stdio: "inherit" }
   );
-  const dependenciesResult = require("./temp/dependencies.json").result
-    ?.records;
+  let dependenciesResult = require("./temp/dependencies.json").result?.records;
+  const SUPPORTED_TYPES = [
+    "AuraDefinitionBundle",
+    "FlexiPage",
+    "LightningComponentBundle",
+    "ApexClass"
+  ];
+  dependenciesResult = dependenciesResult.filter(dep =>
+    SUPPORTED_TYPES.includes(dep.MetadataComponentType)
+  );
   if (dependenciesResult) {
     // create xml file with all types
     // get set of types
@@ -161,21 +181,25 @@ const getPackageFile = listOfMembers => {
     );
     console.log("Backing up dependencies");
     execSync(
-      `sfdx force:mdapi:retrieve -u ${SANDBOX_ALIAS} -k ./temp/dependentMetadata.xml -r ./temp/dependentMetadataBackup`
+      `sfdx force:mdapi:retrieve -u ${SANDBOX_ALIAS} -k ./temp/dependentMetadata.xml -r ./temp/dependentMetadataBackup`,
+      { stdio: "inherit" }
     );
     execSync(
-      `tar -xf ./temp/dependentMetadataBackup/unpackaged.zip -C ./temp/dependentMetadataBackup`
+      `tar -xf ./temp/dependentMetadataBackup/unpackaged.zip -C ./temp/dependentMetadataBackup`,
+      { stdio: "inherit" }
     );
     // copy to removal directory
     if (IS_WINDOWS) {
       // use robocopy command
       execSync(
-        `robocopy ./temp/dependentMetadataBackup/unpackaged/ ./temp/dependentMetadataExtraction /e`
+        `robocopy ./temp/dependentMetadataBackup/unpackaged/ ./temp/dependentMetadataExtraction /e`,
+        { stdio: "inherit" }
       );
     } else {
       // use cp command
       execSync(
-        `cp -r ./temp/dependentMetadataBackup/unpackaged/ ./temp/dependentMetadataExtraction`
+        `cp -r ./temp/dependentMetadataBackup/unpackaged/ ./temp/dependentMetadataExtraction`,
+        { stdio: "inherit" }
       );
     }
     // modify extraction metadata
@@ -251,7 +275,8 @@ const getPackageFile = listOfMembers => {
     });
     console.log("Extracting dependencies");
     execSync(
-      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/dependentMetadataExtraction`
+      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/dependentMetadataExtraction`,
+      { stdio: "inherit" }
     );
   } else {
     console.log("No dependencies found");
@@ -260,7 +285,8 @@ const getPackageFile = listOfMembers => {
   // retrieve list of custom metadata
   console.log("Identifying existing Core Connect metadata");
   execSync(
-    `sfdx force:mdapi:listmetadata -m CustomMetadata -u ${SANDBOX_ALIAS} --json -f ./temp/customMetadata.json`
+    `sfdx force:mdapi:listmetadata -m CustomMetadata -u ${SANDBOX_ALIAS} --json -f ./temp/customMetadata.json`,
+    { stdio: "inherit" }
   );
   // filter to just core connect metadata
   const exportedMetadata = require("./temp/customMetadata.json");
@@ -418,11 +444,13 @@ const getPackageFile = listOfMembers => {
     );
   }
   // recreate perm set assignments
-  console.log("Restoring permission set assignments");
-  execSync(
-    `sfdx force:data:bulk:upsert -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ./temp/permSetAssignments.csv -w 30 -i Id`,
-    { stdio: "inherit" }
-  );
+  if (hasPermSets) {
+    console.log("Restoring permission set assignments");
+    execSync(
+      `sfdx force:data:bulk:upsert -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ./temp/permSetAssignments.csv -w 30 -i Id`,
+      { stdio: "inherit" }
+    );
+  }
 
   // deploy backed up metadata
   console.log("Restoring Core Connect metadata");
@@ -440,6 +468,6 @@ const getPackageFile = listOfMembers => {
   }
 
   // delete temp files
-  execSync(`rm -rf ./temp`);
+  execSync(`rm -rf ./temp`, { stdio: "inherit" });
   console.log("Done");
 })();
