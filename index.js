@@ -2,7 +2,9 @@
 const fs = require("fs");
 const fsPromises = fs.promises;
 const execSync = require("child_process").execSync;
+
 const IS_WINDOWS = process.platform === "win32";
+
 const SANDBOX_ALIAS = "humana";
 const NEW_PACKAGE_ID = "04t5e000000JkTdAAK";
 const NAMESPACE = "dcorealpha";
@@ -120,7 +122,7 @@ const getPackageFile = listOfMembers => {
 (async () => {
   // make temp directory if not exist
   execSync(
-    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows("./temp")}`,
+    `mkdir ${IS_WINDOWS ? "" : " -p "} ${convertUnixPathToWindows("./temp")}`,
     {
       stdio: "inherit"
     }
@@ -359,7 +361,7 @@ const getPackageFile = listOfMembers => {
 
   // kvm
   execSync(
-    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+    `mkdir ${IS_WINDOWS ? "" : " -p "} ${convertUnixPathToWindows(
       "./temp/kvm"
     )}`,
     {
@@ -382,7 +384,7 @@ const getPackageFile = listOfMembers => {
   );
   // actiom defs
   execSync(
-    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+    `mkdir ${IS_WINDOWS ? "" : " -p "} ${convertUnixPathToWindows(
       "./temp/actions"
     )}`,
     {
@@ -406,7 +408,7 @@ const getPackageFile = listOfMembers => {
 
   // config items
   execSync(
-    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+    `mkdir ${IS_WINDOWS ? "" : " -p "} ${convertUnixPathToWindows(
       "./temp/items"
     )}`,
     {
@@ -430,7 +432,7 @@ const getPackageFile = listOfMembers => {
 
   // Cards
   execSync(
-    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+    `mkdir ${IS_WINDOWS ? "" : " -p "} ${convertUnixPathToWindows(
       "./temp/cards"
     )}`,
     {
@@ -454,7 +456,7 @@ const getPackageFile = listOfMembers => {
 
   // data services
   execSync(
-    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+    `mkdir ${IS_WINDOWS ? "" : " -p "} ${convertUnixPathToWindows(
       "./temp/services"
     )}`,
     {
@@ -476,7 +478,7 @@ const getPackageFile = listOfMembers => {
 
   // data sources
   execSync(
-    `mkdir ${IS_WINDOWS ? " -p " : ""} ${convertUnixPathToWindows(
+    `mkdir ${IS_WINDOWS ? "" : " -p "} ${convertUnixPathToWindows(
       "./temp/sources"
     )}`,
     {
