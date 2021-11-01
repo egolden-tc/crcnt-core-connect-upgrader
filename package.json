@@ -5,15 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "export:metadata": "mkdir -p ./temp && sfdx force:mdapi:listmetadata -f ./temp/customMetadata.json --json -u humana -m CustomMetadata && node prepare.js",
-    "delete:metadata": "sfdx force:mdapi:deploy -w 30 -u humana -d ./temp/kvm && sfdx force:mdapi:deploy -w 30 -u humana -d ./temp/actions && sfdx force:mdapi:deploy -w 30 -u humana -d ./temp/items && sfdx force:mdapi:deploy -w 30 -u humana -d ./temp/cards && sfdx force:mdapi:deploy -w 30 -u humana  -d ./temp/services && sfdx force:mdapi:deploy -w 30 -d ./temp/sources -u humana",
-    "remove:metadata": "npm run export:metadata && npm run delete:metadata",
     "upgrade": "git config pull.rebase false && git pull && npm i && node index.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^10.0.0",
-    "xml2js": "^0.4.23"
+    "dotenv": "^10.0.0"
   }
 }

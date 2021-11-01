@@ -1,14 +1,267 @@
 require("dotenv").config();
 const fs = require("fs");
 const fsPromises = fs.promises;
-const xml2js = require("xml2js");
-
+const execSync = require("child_process").execSync;
+const IS_WINDOWS = process.platform === "win32";
 const SANDBOX_ALIAS = process.env.SANDBOX_ALIAS;
-const DEVHUB_ALIAS = process.env.DEVHUB_ALIAS;
+const NEW_PACKAGE_ID = process.env.LATEST_PACKAGE_ID;
 const NAMESPACE = process.env.NAMESPACE;
 const INSTALL_KEY = process.env.INSTALL_KEY;
 const PACKAGE_NAME = process.env.PACKAGE_NAME;
-const generateCustomMetadataXml = async () => {
+const EMPTY_PACKAGE_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+  <version>53.0</version>
+</Package>`;
+const PACKAGE_XML_BASE = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">`;
+const PACKAGE_XML_FINAL = `<version>53.0</version>
+</Package>`;
+const PACKAGE_XML_START = `${PACKAGE_XML_BASE}
+  <types>
+    <name>CustomMetadata</name>`;
+
+const PACKAGE_XML_END = `  </types>
+${PACKAGE_XML_FINAL}`;
+
+const MULTICARD_COMPONENT_REGEX = new RegExp(
+  `<itemInstances>[\\s\\S]*?<componentName>${NAMESPACE}:ConnectMultiCard<\/componentName>[\\s\\S]*?<\/itemInstances>`,
+  "g"
+);
+const SINGLECARD_COMPONENT_REGEX = new RegExp(
+  `<itemInstances>[\\s\\S]*?<componentName>${NAMESPACE}:ConnectSingleCard<\/componentName>[\\s\\S]*?<\/itemInstances>`,
+  "g"
+);
+const CONTEXT_PROVIDER_REGEX = `implements ${NAMESPACE}.ContextProvider`;
+const DATA_SOURCE_PROVIDER_REGEX = `extends ${NAMESPACE}.DataSourceProvider`;
+const APEX_DATA_PROVIDER_REGEX = `extends ${NAMESPACE}.ApexDataProvider`;
+const AURA_MULTICARD_REGEX = new RegExp(
+  `<${NAMESPACE}:ConnectMultiCard[\\s\\S].*[\\/|<\\/${NAMESPACE}:ConnectMultiCard>]>`,
+  "g"
+);
+const AURA_SINGLECARD_REGEX = new RegExp(
+  `<${NAMESPACE}:ConnectSingleCard[\\s\\S].*[\\/|<\\/${NAMESPACE}:ConnectSingleCard>]>`,
+  "g"
+);
+const LWC_FLEXICARD_REGEX = new RegExp(
+  `<${NAMESPACE}-flexi-card[\\s\\S]*?<\\/${NAMESPACE}-flexi-card>`,
+  "g"
+);
+const LWC_CARD_EXTENSION_IMPORT_REGEX = new RegExp(
+  `import FlexiCard from "${NAMESPACE}\\/flexiCard";`,
+  "g"
+);
+const LWC_CARD_EXTENSION_EXTENDS_REGEX = `extends FlexiCard`;
+const OVERRIDE_REGEX = ` override `;
+const removeFileExtension = fileName => {
+  const extension = fileName.split(".").pop();
+  return fileName.replace(`.${extension}`, "");
+};
+
+const extractDependency = (fileName, fileContent, metadataType) => {
+  let newFileContent = fileContent;
+  switch (metadataType) {
+    case "ApexClass":
+      newFileContent = newFileContent.replace(CONTEXT_PROVIDER_REGEX, "");
+      newFileContent = newFileContent.replace(DATA_SOURCE_PROVIDER_REGEX, "");
+      newFileContent = newFileContent.replace(APEX_DATA_PROVIDER_REGEX, "");
+      newFileContent = newFileContent.replace(OVERRIDE_REGEX, " ");
+      break;
+    case "AuraDefinitionBundle":
+      newFileContent = newFileContent.replace(AURA_MULTICARD_REGEX, "");
+      newFileContent = newFileContent.replace(AURA_SINGLECARD_REGEX, "");
+      break;
+    case "LightningComponentBundle":
+      if (fileName.endsWith(".html")) {
+        newFileContent = newFileContent.replace(LWC_FLEXICARD_REGEX, "");
+      } else if (fileName.endsWith(".js")) {
+        newFileContent = newFileContent.replace(
+          LWC_CARD_EXTENSION_IMPORT_REGEX,
+          ""
+        );
+        newFileContent = newFileContent.replace(
+          LWC_CARD_EXTENSION_EXTENDS_REGEX,
+          ""
+        );
+      }
+      break;
+    case "FlexiPage":
+      newFileContent = newFileContent.replace(MULTICARD_COMPONENT_REGEX, "");
+      newFileContent = newFileContent.replace(SINGLECARD_COMPONENT_REGEX, "");
+      break;
+    default:
+      break;
+  }
+  return newFileContent;
+};
+
+const getPackageMember = memberName => {
+  return `<members>${memberName}</members>
+  `;
+};
+
+const getPackageFile = listOfMembers => {
+  return (
+    PACKAGE_XML_START +
+    listOfMembers.reduce((acc, member) => {
+      return acc + getPackageMember(member);
+    }, "") +
+    PACKAGE_XML_END
+  );
+};
+(async () => {
+  // make temp directory if not exist
+  execSync("mkdir -p ./temp");
+  // retrieve perm permSetAssignments
+  console.log("Backing up permission set assignments");
+  execSync(
+    `sfdx force:data:soql:query -q "SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'" -r csv -u ${SANDBOX_ALIAS} > ./temp/permSetAssignments.csv`
+  );
+  // delete perm set assignments
+  console.log("Deleting permission set assignments");
+  execSync(
+    `sfdx force:data:bulk:delete -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ./temp/permSetAssignments.csv -w 30`
+  );
+  console.log("Identifying dependencies");
+  execSync(
+    `sfdx force:data:soql:query -u ${SANDBOX_ALIAS} --usetoolingapi -q "SELECT MetadataComponentName,MetadataComponentType,RefMetadataComponentName,RefMetadataComponentType FROM MetadataComponentDependency WHERE RefMetadataComponentNamespace = '${NAMESPACE}'" --json > ./temp/dependencies.json`
+  );
+  const dependenciesResult = require("./temp/dependencies.json").result
+    ?.records;
+  if (dependenciesResult) {
+    // create xml file with all types
+    // get set of types
+    console.log("Dependencies found");
+    const dependencies = dependenciesResult.reduce((acc, dependency) => {
+      if (!acc[dependency.MetadataComponentType]) {
+        acc[dependency.MetadataComponentType] = [];
+      }
+      const cleanName = removeFileExtension(dependency.MetadataComponentName);
+      if (acc[dependency.MetadataComponentType].indexOf(cleanName) === -1) {
+        acc[dependency.MetadataComponentType].push(cleanName);
+      }
+      return acc;
+    }, {});
+    let dependentMetadataXml = PACKAGE_XML_BASE;
+    Object.keys(dependencies).forEach(type => {
+      dependentMetadataXml += `<types>
+        <name>${type}</name>
+        ${dependencies[type]
+          .map(member => {
+            return getPackageMember(member);
+          })
+          .join("")}
+      </types>`;
+    });
+    dependentMetadataXml += PACKAGE_XML_FINAL;
+
+    await fsPromises.writeFile(
+      "./temp/dependentMetadata.xml",
+      dependentMetadataXml
+    );
+    console.log("Backing up dependencies");
+    execSync(
+      `sfdx force:mdapi:retrieve -u ${SANDBOX_ALIAS} -k ./temp/dependentMetadata.xml -r ./temp/dependentMetadataBackup`
+    );
+    execSync(
+      `tar -xf ./temp/dependentMetadataBackup/unpackaged.zip -C ./temp/dependentMetadataBackup`
+    );
+    // copy to removal directory
+    if (IS_WINDOWS) {
+      // use robocopy command
+      execSync(
+        `robocopy ./temp/dependentMetadataBackup/unpackaged/ ./temp/dependentMetadataExtraction /e`
+      );
+    } else {
+      // use cp command
+      execSync(
+        `cp -r ./temp/dependentMetadataBackup/unpackaged/ ./temp/dependentMetadataExtraction`
+      );
+    }
+    // modify extraction metadata
+    // iterate dependencies
+    Object.keys(dependencies).forEach(type => {
+      switch (type) {
+        case "ApexClass":
+          dependencies[type].forEach(member => {
+            const filePath = `./temp/dependentMetadataExtraction/classes/${member}.cls`;
+            const fileContent = fs.readFileSync(filePath, "utf8");
+            fs.writeFileSync(
+              filePath,
+              extractDependency(filePath, fileContent, type)
+            );
+          });
+          break;
+        case "AuraDefinitionBundle":
+          dependencies[type].forEach(member => {
+            const directory = `./temp/dependentMetadataExtraction/aura/${member}`;
+            if (fs.existsSync(directory)) {
+              // iterate files in directory and sort into html and js files
+              const files = fs.readdirSync(directory);
+              files
+                .filter(
+                  fileName =>
+                    fileName.endsWith(".app") || fileName.endsWith(".cmp")
+                )
+                .forEach(file => {
+                  const filePath = `${directory}/${file}`;
+
+                  const fileContent = fs.readFileSync(filePath, "utf8");
+                  fs.writeFileSync(
+                    filePath,
+                    extractDependency(filePath, fileContent, type)
+                  );
+                });
+            }
+          });
+          break;
+        case "FlexiPage":
+          dependencies[type].forEach(member => {
+            const filePath = `./temp/dependentMetadataExtraction/flexipages/${member}.flexipage`;
+            const fileContent = fs.readFileSync(filePath, "utf8");
+            fs.writeFileSync(
+              filePath,
+              extractDependency(filePath, fileContent, type)
+            );
+          });
+          break;
+        case "LightningComponentBundle":
+          dependencies[type].forEach(member => {
+            const directory = `./temp/dependentMetadataExtraction/lwc/${member}`;
+            if (fs.existsSync(directory)) {
+              // iterate files in directory and sort into html and js files
+              const files = fs.readdirSync(directory);
+              files
+                .filter(
+                  fileName =>
+                    fileName.endsWith(".js") || fileName.endsWith(".html")
+                )
+                .forEach(file => {
+                  const filePath = `${directory}/${file}`;
+                  const fileContent = fs.readFileSync(filePath, "utf8");
+                  fs.writeFileSync(
+                    filePath,
+                    extractDependency(filePath, fileContent, type)
+                  );
+                });
+            }
+          });
+          break;
+      }
+    });
+    console.log("Extracting dependencies");
+    execSync(
+      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/dependentMetadataExtraction`
+    );
+  } else {
+    console.log("No dependencies found");
+  }
+
+  // retrieve list of custom metadata
+  console.log("Identifying existing Core Connect metadata");
+  execSync(
+    `sfdx force:mdapi:listmetadata -m CustomMetadata -u ${SANDBOX_ALIAS} --json -f ./temp/customMetadata.json`
+  );
+  // filter to just core connect metadata
   const exportedMetadata = require("./temp/customMetadata.json");
   const dcoreMetadata = exportedMetadata.filter(row => {
     return (
@@ -16,325 +269,176 @@ const generateCustomMetadataXml = async () => {
       row.namespacePrefix !== NAMESPACE
     );
   });
+  // generate XML manifests
+  await fsPromises.writeFile(
+    "./temp/metadataPackage.xml",
+    getPackageFile(dcoreMetadata.map(row => row.fullName))
+  );
+  // full list for retrieve
 
-  const data = await fsPromises.readFile(
-    "./manifests/metadataPackage.xml",
-    "utf-8"
+  // kvm
+  execSync("mkdir -p ./temp/kvm");
+  await fsPromises.writeFile("./temp/kvm/package.xml", EMPTY_PACKAGE_XML);
+  await fsPromises.writeFile(
+    "./temp/kvm/destructiveChanges.xml",
+    getPackageFile(
+      dcoreMetadata
+        .filter(item =>
+          item.fullName.startsWith(`${NAMESPACE}__Key_Value_Mapping`)
+        )
+        .map(row => row.fullName)
+    )
+  );
+  // actiom defs
+  execSync("mkdir -p ./temp/actions");
+  await fsPromises.writeFile("./temp/actions/package.xml", EMPTY_PACKAGE_XML);
+  await fsPromises.writeFile(
+    "./temp/actions/destructiveChanges.xml",
+    getPackageFile(
+      dcoreMetadata
+        .filter(item =>
+          item.fullName.startsWith(`${NAMESPACE}__Action_Definition`)
+        )
+        .map(row => row.fullName)
+    )
   );
 
-  const result = await new Promise((resolve, reject) => {
-    xml2js.parseString(data, (parseErr, parseResult) => {
-      if (parseErr) reject(parseErr);
-      resolve(parseResult);
-    });
-  });
-
-  const builder = new xml2js.Builder();
-
-  // KV Mappings
-  try {
-    await fsPromises.mkdir("./temp/kvm");
-    await fsPromises.mkdir("./temp/actions");
-    await fsPromises.mkdir("./temp/items");
-    await fsPromises.mkdir("./temp/cards");
-    await fsPromises.mkdir("./temp/sources");
-    await fsPromises.mkdir("./temp/services");
-  } catch (e) {
-    //console.warn(e);
-  }
-
-  // Full Metadata backup
-  result.Package.types[0].members = dcoreMetadata.map(item => {
-    return item.fullName;
-  });
-  let builtXml = builder.buildObject(result);
-  await fsPromises.writeFile("./temp/metadataPackage.xml", builtXml);
-
-  // Key Value mappings
-  result.Package.types[0].members = dcoreMetadata
-    .filter(item => {
-      return item.fullName.startsWith(`${NAMESPACE}__Key_Value_Mapping`);
-    })
-    .map(item => {
-      return item.fullName;
-    });
-
-  builtXml = builder.buildObject(result);
-  await fsPromises.copyFile(
-    "./manifests/package.xml",
-    "./temp/kvm/package.xml"
+  // config items
+  execSync("mkdir -p ./temp/items");
+  await fsPromises.writeFile("./temp/items/package.xml", EMPTY_PACKAGE_XML);
+  await fsPromises.writeFile(
+    "./temp/items/destructiveChanges.xml",
+    getPackageFile(
+      dcoreMetadata
+        .filter(item =>
+          item.fullName.startsWith(`${NAMESPACE}__Card_Configuration_Item`)
+        )
+        .map(row => row.fullName)
+    )
   );
-  await fsPromises.writeFile("./temp/kvm/destructiveChanges.xml", builtXml);
 
-  // delete Actions
-  result.Package.types[0].members = dcoreMetadata
-    .filter(item => {
-      return item.fullName.startsWith(`${NAMESPACE}__Action_Definition`);
-    })
-    .map(item => {
-      return item.fullName;
-    });
-
-  builtXml = builder.buildObject(result);
-  await fsPromises.copyFile(
-    "./manifests/package.xml",
-    "./temp/actions/package.xml"
+  // Cards
+  execSync("mkdir -p ./temp/cards");
+  await fsPromises.writeFile("./temp/cards/package.xml", EMPTY_PACKAGE_XML);
+  await fsPromises.writeFile(
+    "./temp/cards/destructiveChanges.xml",
+    getPackageFile(
+      dcoreMetadata
+        .filter(item =>
+          item.fullName.startsWith(`${NAMESPACE}__Card_Configuration.`)
+        )
+        .map(row => row.fullName)
+    )
   );
-  await fsPromises.writeFile("./temp/actions/destructiveChanges.xml", builtXml);
-  // delete Data Sources
-  result.Package.types[0].members = dcoreMetadata
-    .filter(item => {
-      return item.fullName.startsWith(`${NAMESPACE}__Data_Source`);
-    })
-    .map(item => {
-      return item.fullName;
-    });
 
-  builtXml = builder.buildObject(result);
-  await fsPromises.copyFile(
-    "./manifests/package.xml",
-    "./temp/sources/package.xml"
-  );
-  await fsPromises.writeFile("./temp/sources/destructiveChanges.xml", builtXml);
-
-  // delete Config Items
-  result.Package.types[0].members = dcoreMetadata
-    .filter(item => {
-      return item.fullName.startsWith(`${NAMESPACE}__Card_Configuration_Item`);
-    })
-    .map(item => {
-      return item.fullName;
-    });
-
-  builtXml = builder.buildObject(result);
-  await fsPromises.copyFile(
-    "./manifests/package.xml",
-    "./temp/items/package.xml"
-  );
-  await fsPromises.writeFile("./temp/items/destructiveChanges.xml", builtXml);
-
-  // delete Cards
-  result.Package.types[0].members = dcoreMetadata
-    .filter(item => {
-      return item.fullName.startsWith(`${NAMESPACE}__Card_Configuration.`);
-    })
-    .map(item => {
-      return item.fullName;
-    });
-
-  builtXml = builder.buildObject(result);
-  await fsPromises.copyFile(
-    "./manifests/package.xml",
-    "./temp/cards/package.xml"
-  );
-  await fsPromises.writeFile("./temp/cards/destructiveChanges.xml", builtXml);
-  // delete Data Services
-  result.Package.types[0].members = dcoreMetadata
-    .filter(item => {
-      return item.fullName.startsWith(`${NAMESPACE}__Data_Service`);
-    })
-    .map(item => {
-      return item.fullName;
-    });
-
-  builtXml = builder.buildObject(result);
-  await fsPromises.copyFile(
-    "./manifests/package.xml",
-    "./temp/services/package.xml"
-  );
+  // data services
+  execSync("mkdir -p ./temp/services");
+  await fsPromises.writeFile("./temp/services/package.xml", EMPTY_PACKAGE_XML);
   await fsPromises.writeFile(
     "./temp/services/destructiveChanges.xml",
-    builtXml
+    getPackageFile(
+      dcoreMetadata
+        .filter(item => item.fullName.startsWith(`${NAMESPACE}__Data_Service`))
+        .map(row => row.fullName)
+    )
   );
-};
 
-(async () => {
-  // create temporary folders
+  // data sources
+  execSync("mkdir -p ./temp/sources");
+  await fsPromises.writeFile("./temp/sources/package.xml", EMPTY_PACKAGE_XML);
+  await fsPromises.writeFile(
+    "./temp/sources/destructiveChanges.xml",
+    getPackageFile(
+      dcoreMetadata
+        .filter(item => item.fullName.startsWith(`${NAMESPACE}__Data_Source`))
+        .map(row => row.fullName)
+    )
+  );
 
-  try {
-    await fsPromises.mkdir("./temp");
-  } catch (e) {
-    //console.warn(e);
+  // retrieve metadata
+  console.log("Backing up Core Connect metadata");
+  execSync(
+    `sfdx force:mdapi:retrieve -k ./temp/metadataPackage.xml -u ${SANDBOX_ALIAS} -r ./temp/customMetadataBackup`,
+    { stdio: "inherit" }
+  );
+  // delete cards in order
+  console.log("Deleting Core Connect metadata");
+  execSync(`sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/kvm`, {
+    stdio: "inherit"
+  });
+  execSync(
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/items`,
+    { stdio: "inherit" }
+  );
+  execSync(
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/actions`,
+    { stdio: "inherit" }
+  );
+  execSync(
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/cards`,
+    { stdio: "inherit" }
+  );
+  execSync(
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/services`,
+    { stdio: "inherit" }
+  );
+  execSync(
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/sources`,
+    { stdio: "inherit" }
+  );
+
+  // retrieve installed packages as JSON
+  execSync(
+    `sfdx force:data:soql:query -u ${SANDBOX_ALIAS} --usetoolingapi --json -q "SELECT Id,SubscriberPackage.Name,SubscriberPackageId,SubscriberPackageVersion.Id FROM InstalledSubscriberPackage" > ./temp/installedPackages.json`,
+    { stdio: "inherit" }
+  );
+  // find and remove core connect
+  const installedPackages = require("./temp/installedPackages.json").result
+    .records;
+  const coreConnectPackageVersionId = installedPackages.find(
+    row => row.SubscriberPackage.Name === PACKAGE_NAME
+  ).SubscriberPackageVersion.Id;
+  console.log("Uninstalling old Core Connect package version");
+  execSync(
+    `sfdx force:package:uninstall -u ${SANDBOX_ALIAS} -w 60 -p ${coreConnectPackageVersionId}`,
+    { stdio: "inherit" }
+  );
+  // install new package via package version Id
+  console.log("Installing new Core Connect package version");
+  if (INSTALL_KEY) {
+    execSync(
+      `sfdx force:package:install -u ${SANDBOX_ALIAS} -w 60 -p ${NEW_PACKAGE_ID} -r -k ${INSTALL_KEY}`,
+      { stdio: "inherit" }
+    );
+  } else {
+    execSync(
+      `sfdx force:package:install -u ${SANDBOX_ALIAS} -w 60 -p ${NEW_PACKAGE_ID} -r`,
+      { stdio: "inherit" }
+    );
   }
-  /*
-  // retrieve permission set assignments
-  const permSetAssignments = await sfdx.force.data.soqlQuery({
-    targetusername: SANDBOX_ALIAS,
-    json: true,
-    query: `SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'`,
-    _quiet: false
-  });
+  // recreate perm set assignments
+  console.log("Restoring permission set assignments");
+  execSync(
+    `sfdx force:data:bulk:upsert -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ./temp/permSetAssignments.csv -w 30 -i Id`,
+    { stdio: "inherit" }
+  );
 
-  // query metadata that references
-  //SELECT Id,MetadataComponentId,MetadataComponentName,MetadataComponentType,RefMetadataComponentName,RefMetadataComponentType FROM MetadataComponentDependency WHERE RefMetadataComponentNamespace = 'dcorealpha'
-  // Display warning/error asking user to
-
-  // remove permission set assignments
-  for (const psa of permSetAssignments.records) {
-    await sfdx.force.data.recordDelete({
-      targetusername: SANDBOX_ALIAS,
-      sobjectid: psa.Id,
-      sobjecttype: "PermissionSetAssignment",
-      _quiet: false
-    });
-  }
-  
-
-  // retrieve latest account page and backup
-  // Backing Up Account Page
-  await sfdx.force.mdapi.retrieve({
-    targetusername: SANDBOX_ALIAS,
-    unpackaged: "./manifests/accountPagePackage.xml",
-    retrievetargetdir: "./temp/AccountPageBackup",
-    _quiet: false
-  });
-  // deploy original account page
-  await sfdx.force.mdapi.deploy({
-    targetusername: SANDBOX_ALIAS,
-    wait: 30,
-    deploydir: "./manifests/BlankAccountPage",
-    _quiet: false
-  });
-  */
-
-  // retrieve all non-namespaced Cards
-  console.log("Retrieving list of Core Connect metadata to backup.");
-  await sfdx.force.mdapi.listmetadata({
-    resultfile: "./temp/customMetadata.json",
-    json: true,
-    targetusername: SANDBOX_ALIAS,
-    metadatatype: "CustomMetadata",
-    _quiet: false
-  });
-  console.log("Generating XML for custom metadata");
-  await generateCustomMetadataXml();
-  // backup custom metadata
-  console.log("Backing up metadata");
-  await sfdx.force.mdapi.retrieve({
-    unpackaged: "temp/metadataPackage.xml",
-    retrievetargetdir: "./temp/customMetadataBackup",
-    targetusername: SANDBOX_ALIAS,
-    _quiet: false
-  });
-  // delete custom metadata
-  console.log("deleting metadata");
-  // delete KV Mappings
-  await sfdx.force.mdapi.deploy({
-    wait: 30,
-    targetusername: SANDBOX_ALIAS,
-    deploydir: "./temp/kvm",
-    _quiet: false
-  });
-  // delete Actions
-  await sfdx.force.mdapi.deploy({
-    wait: 30,
-    targetusername: SANDBOX_ALIAS,
-    deploydir: "./temp/actions",
-    _quiet: false
-  });
-  // delete Config Items
-  await sfdx.force.mdapi.deploy({
-    wait: 30,
-    targetusername: SANDBOX_ALIAS,
-    deploydir: "./temp/items",
-    _quiet: false
-  });
-  // delete Cards
-  await sfdx.force.mdapi.deploy({
-    wait: 30,
-    targetusername: SANDBOX_ALIAS,
-    deploydir: "./temp/cards",
-    _quiet: false
-  });
-  // delete Data Services
-  await sfdx.force.mdapi.deploy({
-    wait: 30,
-    targetusername: SANDBOX_ALIAS,
-    deploydir: "./temp/services",
-    _quiet: false
-  });
-  // delete Data Sources
-  await sfdx.force.mdapi.deploy({
-    wait: 30,
-    targetusername: SANDBOX_ALIAS,
-    deploydir: "./temp/sources",
-    _quiet: false
-  });
-
-  // uninstalling package
-  // need id of installed package version
-  //await sfdx.force.package.uninstall({});
-  console.log("Uninstalling Package");
-  const installedPackages = await sfdx.force.data.soqlQuery({
-    targetusername: SANDBOX_ALIAS,
-    usetoolingapi: true,
-    json: true,
-    query:
-      "SELECT Id,SubscriberPackage.Name,SubscriberPackageId,SubscriberPackageVersion.Id FROM InstalledSubscriberPackage",
-    _quiet: false
-  });
-  const coreConnectInstalledVersionId = installedPackages.records.filter(
-    result => {
-      return result.SubscriberPackage.Name === PACKAGE_NAME;
-    }
-  )[0].SubscriberPackageVersion.Id;
-  await sfdx.force.package.uninstall({
-    targetusername: SANDBOX_ALIAS,
-    wait: 30,
-    package: coreConnectInstalledVersionId,
-    _quiet: false
-  });
-
-  // Install updated package
-
-  console.log("Installing Updated Package.");
-  const coreConnectPackageVersion = await sfdx.force.data.soqlQuery({
-    targetusername: DEVHUB_ALIAS,
-    usetoolingapi: true,
-    json: true,
-    query: `SELECT Id,SubscriberPackageVersionId,BuildNumber,Description,IsReleased,MajorVersion,MinorVersion,Name,Package2Id,PatchVersion FROM Package2Version WHERE Package2.Name = '${PACKAGE_NAME}' ORDER BY MajorVersion DESC,MinorVersion DESC,PatchVersion DESC, BuildNumber DESC LIMIT 1`,
-    _quiet: false
-  });
-  const latestPackageId =
-    coreConnectPackageVersion.records[0].SubscriberPackageVersionId;
-
-  const installOptions = {
-    package: latestPackageId,
-    noprompt: true,
-    targetusername: SANDBOX_ALIAS,
-    wait: 30,
-    _quiet: false
-  };
-
-  if (!NAMESPACE.includes("alpha")) {
-    installOptions.installationkey = INSTALL_KEY;
+  // deploy backed up metadata
+  console.log("Restoring Core Connect metadata");
+  execSync(
+    `sfdx force:mdapi:deploy -u ${SANDBOX_ALIAS} -f ./temp/customMetadataBackup/unpackaged.zip -w 30`,
+    { stdio: "inherit" }
+  );
+  // deploy original dependencies
+  if (dependenciesResult) {
+    console.log("Restoring dependencies");
+    execSync(
+      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/dependentMetadataBackup/unpackaged`,
+      { stdio: "inherit" }
+    );
   }
 
-  await sfdx.force.package.install(installOptions);
-
-  // Re-assign permission sets
-  for (const psa of permSetAssignments.records) {
-    await sfdx.force.data.recordCreate({
-      targetusername: SANDBOX_ALIAS,
-      sobjecttype: "PermissionSetAssignment",
-      values: `AssigneeId='${psa.AssigneeId}' PermissionSetId='${psa.PermissionSetId}'`
-    });
-  }
-  // deploy non-namespaced cards
-
-  console.log("deploying backed up metadata");
-  await sfdx.force.mdapi.deploy({
-    wait: -1,
-    targetusername: SANDBOX_ALIAS,
-    zipfile: "./temp/customMetadataBackup/unpackaged.zip",
-    _quiet: false
-  });
-
-  // Restore Lightning Page
-  console.log("Restoring Lightning Page");
-  await sfdx.force.mdapi.deploy({
-    wait: -1,
-    targetusername: SANDBOX_ALIAS,
-    zipfile: "./temp/AccountPageBackup/unpackaged.zip"
-  });
+  // delete temp files
+  execSync(`rm -rf ./temp`);
+  console.log("Done");
 })();
