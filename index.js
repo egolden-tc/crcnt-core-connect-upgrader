@@ -1,14 +1,13 @@
 #!/usr/bin/env node
-require("dotenv").config();
 const fs = require("fs");
 const fsPromises = fs.promises;
 const execSync = require("child_process").execSync;
 const IS_WINDOWS = process.platform === "win32";
-const SANDBOX_ALIAS = process.env.SANDBOX_ALIAS;
-const NEW_PACKAGE_ID = process.env.LATEST_PACKAGE_ID;
-const NAMESPACE = process.env.NAMESPACE;
-const INSTALL_KEY = process.env.INSTALL_KEY;
-const PACKAGE_NAME = process.env.PACKAGE_NAME;
+const SANDBOX_ALIAS = "humana";
+const NEW_PACKAGE_ID = "04t5e000000JkTdAAK";
+const NAMESPACE = "dcorealpha";
+const INSTALL_KEY = "";
+const PACKAGE_NAME = "CoreConnectAlpha";
 const EMPTY_PACKAGE_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
   <version>53.0</version>
@@ -95,6 +94,13 @@ const extractDependency = (fileName, fileContent, metadataType) => {
   return newFileContent;
 };
 
+const convertUnixPathToWindows = path => {
+  if (IS_WINDOWS) {
+    return path.replace(/\//g, "\\");
+  }
+  return path;
+};
+
 const getPackageMember = memberName => {
   return `<members>${memberName}</members>
   `;
@@ -111,34 +117,47 @@ const getPackageFile = listOfMembers => {
 };
 (async () => {
   // make temp directory if not exist
-  execSync("mkdir -p ./temp", { stdio: "inherit" });
+  execSync(`mkdir -p ${convertUnixPathToWindows("./temp")}`, {
+    stdio: "inherit"
+  });
   // retrieve perm permSetAssignments
   console.log("Backing up permission set assignments");
   execSync(
-    `sfdx force:data:soql:query -q "SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'" -r csv -u ${SANDBOX_ALIAS} > ./temp/permSetAssignments.csv`,
+    `sfdx force:data:soql:query -q "SELECT Id,AssigneeId,PermissionSetId FROM PermissionSetAssignment WHERE PermissionSet.NamespacePrefix = '${NAMESPACE}'" -r csv -u ${SANDBOX_ALIAS} > ${convertUnixPathToWindows(
+      "./temp/permSetAssignments.csv"
+    )}`,
     { stdio: "inherit" }
   );
 
   const hasPermSets =
     (
-      await fsPromises.readFile("./temp/permSetAssignments.csv", {
-        encoding: "utf-8"
-      })
+      await fsPromises.readFile(
+        convertUnixPathToWindows("./temp/permSetAssignments.csv"),
+        {
+          encoding: "utf-8"
+        }
+      )
     )?.trim().length > 0;
   if (hasPermSets) {
     // delete perm set assignments
     console.log("Deleting permission set assignments");
     execSync(
-      `sfdx force:data:bulk:delete -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ./temp/permSetAssignments.csv -w 30`,
+      `sfdx force:data:bulk:delete -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ${convertUnixPathToWindows(
+        "./temp/permSetAssignments.csv"
+      )} -w 30`,
       { stdio: "inherit" }
     );
   }
   console.log("Identifying dependencies");
   execSync(
-    `sfdx force:data:soql:query -u ${SANDBOX_ALIAS} --usetoolingapi -q "SELECT MetadataComponentName,MetadataComponentType,RefMetadataComponentName,RefMetadataComponentType FROM MetadataComponentDependency WHERE RefMetadataComponentNamespace = '${NAMESPACE}'" --json > ./temp/dependencies.json`,
+    `sfdx force:data:soql:query -u ${SANDBOX_ALIAS} --usetoolingapi -q "SELECT MetadataComponentName,MetadataComponentType,RefMetadataComponentName,RefMetadataComponentType FROM MetadataComponentDependency WHERE RefMetadataComponentNamespace = '${NAMESPACE}'" --json > ${convertUnixPathToWindows(
+      "./temp/dependencies.json"
+    )}`,
     { stdio: "inherit" }
   );
-  let dependenciesResult = require("./temp/dependencies.json").result?.records;
+  let dependenciesResult = require(convertUnixPathToWindows(
+    "./temp/dependencies.json"
+  )).result?.records;
   const SUPPORTED_TYPES = [
     "AuraDefinitionBundle",
     "FlexiPage",
@@ -176,23 +195,31 @@ const getPackageFile = listOfMembers => {
     dependentMetadataXml += PACKAGE_XML_FINAL;
 
     await fsPromises.writeFile(
-      "./temp/dependentMetadata.xml",
+      convertUnixPathToWindows("./temp/dependentMetadata.xml"),
       dependentMetadataXml
     );
     console.log("Backing up dependencies");
     execSync(
-      `sfdx force:mdapi:retrieve -u ${SANDBOX_ALIAS} -k ./temp/dependentMetadata.xml -r ./temp/dependentMetadataBackup`,
+      `sfdx force:mdapi:retrieve -u ${SANDBOX_ALIAS} -k ${convertUnixPathToWindows(
+        "./temp/dependentMetadata.xml"
+      )} -r ${convertUnixPathToWindows("./temp/dependentMetadataBackup")}`,
       { stdio: "inherit" }
     );
     execSync(
-      `tar -xf ./temp/dependentMetadataBackup/unpackaged.zip -C ./temp/dependentMetadataBackup`,
+      `tar -xf ${convertUnixPathToWindows(
+        "./temp/dependentMetadataBackup/unpackaged.zip"
+      )} -C ${convertUnixPathToWindows("./temp/dependentMetadataBackup")}`,
       { stdio: "inherit" }
     );
     // copy to removal directory
     if (IS_WINDOWS) {
       // use robocopy command
       execSync(
-        `robocopy ./temp/dependentMetadataBackup/unpackaged/ ./temp/dependentMetadataExtraction /e`,
+        `robocopy ${convertUnixPathToWindows(
+          "./temp/dependentMetadataBackup/unpackaged/"
+        )} ${convertUnixPathToWindows(
+          "./temp/dependentMetadataExtraction"
+        )} /e`,
         { stdio: "inherit" }
       );
     } else {
@@ -209,7 +236,10 @@ const getPackageFile = listOfMembers => {
         case "ApexClass":
           dependencies[type].forEach(member => {
             const filePath = `./temp/dependentMetadataExtraction/classes/${member}.cls`;
-            const fileContent = fs.readFileSync(filePath, "utf8");
+            const fileContent = fs.readFileSync(
+              convertUnixPathToWindows(filePath),
+              "utf8"
+            );
             fs.writeFileSync(
               filePath,
               extractDependency(filePath, fileContent, type)
@@ -219,7 +249,7 @@ const getPackageFile = listOfMembers => {
         case "AuraDefinitionBundle":
           dependencies[type].forEach(member => {
             const directory = `./temp/dependentMetadataExtraction/aura/${member}`;
-            if (fs.existsSync(directory)) {
+            if (fs.existsSync(convertUnixPathToWindows(directory))) {
               // iterate files in directory and sort into html and js files
               const files = fs.readdirSync(directory);
               files
@@ -228,7 +258,9 @@ const getPackageFile = listOfMembers => {
                     fileName.endsWith(".app") || fileName.endsWith(".cmp")
                 )
                 .forEach(file => {
-                  const filePath = `${directory}/${file}`;
+                  const filePath = convertUnixPathToWindows(
+                    `${directory}/${file}`
+                  );
 
                   const fileContent = fs.readFileSync(filePath, "utf8");
                   fs.writeFileSync(
@@ -241,8 +273,13 @@ const getPackageFile = listOfMembers => {
           break;
         case "FlexiPage":
           dependencies[type].forEach(member => {
-            const filePath = `./temp/dependentMetadataExtraction/flexipages/${member}.flexipage`;
-            const fileContent = fs.readFileSync(filePath, "utf8");
+            const filePath = convertUnixPathToWindows(
+              `./temp/dependentMetadataExtraction/flexipages/${member}.flexipage`
+            );
+            const fileContent = fs.readFileSync(
+              convertUnixPathToWindows(filePath),
+              "utf8"
+            );
             fs.writeFileSync(
               filePath,
               extractDependency(filePath, fileContent, type)
@@ -252,16 +289,18 @@ const getPackageFile = listOfMembers => {
         case "LightningComponentBundle":
           dependencies[type].forEach(member => {
             const directory = `./temp/dependentMetadataExtraction/lwc/${member}`;
-            if (fs.existsSync(directory)) {
+            if (fs.existsSync(convertUnixPathToWindows(directory))) {
               // iterate files in directory and sort into html and js files
-              const files = fs.readdirSync(directory);
+              const files = fs.readdirSync(convertUnixPathToWindows(directory));
               files
                 .filter(
                   fileName =>
                     fileName.endsWith(".js") || fileName.endsWith(".html")
                 )
                 .forEach(file => {
-                  const filePath = `${directory}/${file}`;
+                  const filePath = convertUnixPathToWindows(
+                    `${directory}/${file}`
+                  );
                   const fileContent = fs.readFileSync(filePath, "utf8");
                   fs.writeFileSync(
                     filePath,
@@ -275,7 +314,9 @@ const getPackageFile = listOfMembers => {
     });
     console.log("Extracting dependencies");
     execSync(
-      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/dependentMetadataExtraction`,
+      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
+        "./temp/dependentMetadataExtraction"
+      )}`,
       { stdio: "inherit" }
     );
   } else {
@@ -285,11 +326,15 @@ const getPackageFile = listOfMembers => {
   // retrieve list of custom metadata
   console.log("Identifying existing Core Connect metadata");
   execSync(
-    `sfdx force:mdapi:listmetadata -m CustomMetadata -u ${SANDBOX_ALIAS} --json -f ./temp/customMetadata.json`,
+    `sfdx force:mdapi:listmetadata -m CustomMetadata -u ${SANDBOX_ALIAS} --json -f ${convertUnixPathToWindows(
+      "./temp/customMetadata.json"
+    )}`,
     { stdio: "inherit" }
   );
   // filter to just core connect metadata
-  const exportedMetadata = require("./temp/customMetadata.json");
+  const exportedMetadata = require(convertUnixPathToWindows(
+    "./temp/customMetadata.json"
+  ));
   const dcoreMetadata = exportedMetadata.filter(row => {
     return (
       row.fullName.startsWith(`${NAMESPACE}__`) &&
@@ -298,16 +343,21 @@ const getPackageFile = listOfMembers => {
   });
   // generate XML manifests
   await fsPromises.writeFile(
-    "./temp/metadataPackage.xml",
+    convertUnixPathToWindows("./temp/metadataPackage.xml"),
     getPackageFile(dcoreMetadata.map(row => row.fullName))
   );
   // full list for retrieve
 
   // kvm
-  execSync("mkdir -p ./temp/kvm");
-  await fsPromises.writeFile("./temp/kvm/package.xml", EMPTY_PACKAGE_XML);
+  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/kvm")}`, {
+    stdio: "inherit"
+  });
   await fsPromises.writeFile(
-    "./temp/kvm/destructiveChanges.xml",
+    convertUnixPathToWindows("./temp/kvm/package.xml"),
+    EMPTY_PACKAGE_XML
+  );
+  await fsPromises.writeFile(
+    convertUnixPathToWindows("./temp/kvm/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
         .filter(item =>
@@ -317,10 +367,15 @@ const getPackageFile = listOfMembers => {
     )
   );
   // actiom defs
-  execSync("mkdir -p ./temp/actions");
-  await fsPromises.writeFile("./temp/actions/package.xml", EMPTY_PACKAGE_XML);
+  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/actions")}`, {
+    stdio: "inherit"
+  });
   await fsPromises.writeFile(
-    "./temp/actions/destructiveChanges.xml",
+    convertUnixPathToWindows("./temp/actions/package.xml"),
+    EMPTY_PACKAGE_XML
+  );
+  await fsPromises.writeFile(
+    convertUnixPathToWindows("./temp/actions/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
         .filter(item =>
@@ -331,10 +386,15 @@ const getPackageFile = listOfMembers => {
   );
 
   // config items
-  execSync("mkdir -p ./temp/items");
-  await fsPromises.writeFile("./temp/items/package.xml", EMPTY_PACKAGE_XML);
+  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/items")}`, {
+    stdio: "inherit"
+  });
   await fsPromises.writeFile(
-    "./temp/items/destructiveChanges.xml",
+    convertUnixPathToWindows("./temp/items/package.xml"),
+    EMPTY_PACKAGE_XML
+  );
+  await fsPromises.writeFile(
+    convertUnixPathToWindows("./temp/items/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
         .filter(item =>
@@ -345,10 +405,15 @@ const getPackageFile = listOfMembers => {
   );
 
   // Cards
-  execSync("mkdir -p ./temp/cards");
-  await fsPromises.writeFile("./temp/cards/package.xml", EMPTY_PACKAGE_XML);
+  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/cards")}`, {
+    stdio: "inherit"
+  });
   await fsPromises.writeFile(
-    "./temp/cards/destructiveChanges.xml",
+    convertUnixPathToWindows("./temp/cards/package.xml"),
+    EMPTY_PACKAGE_XML
+  );
+  await fsPromises.writeFile(
+    convertUnixPathToWindows("./temp/cards/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
         .filter(item =>
@@ -359,10 +424,15 @@ const getPackageFile = listOfMembers => {
   );
 
   // data services
-  execSync("mkdir -p ./temp/services");
-  await fsPromises.writeFile("./temp/services/package.xml", EMPTY_PACKAGE_XML);
+  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/services")}`, {
+    stdio: "inherit"
+  });
   await fsPromises.writeFile(
-    "./temp/services/destructiveChanges.xml",
+    convertUnixPathToWindows("./temp/services/package.xml"),
+    EMPTY_PACKAGE_XML
+  );
+  await fsPromises.writeFile(
+    convertUnixPathToWindows("./temp/services/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
         .filter(item => item.fullName.startsWith(`${NAMESPACE}__Data_Service`))
@@ -371,10 +441,15 @@ const getPackageFile = listOfMembers => {
   );
 
   // data sources
-  execSync("mkdir -p ./temp/sources");
-  await fsPromises.writeFile("./temp/sources/package.xml", EMPTY_PACKAGE_XML);
+  execSync(`mkdir -p ${convertUnixPathToWindows("./temp/sources")}`, {
+    stdio: "inherit"
+  });
   await fsPromises.writeFile(
-    "./temp/sources/destructiveChanges.xml",
+    convertUnixPathToWindows("./temp/sources/package.xml"),
+    EMPTY_PACKAGE_XML
+  );
+  await fsPromises.writeFile(
+    convertUnixPathToWindows("./temp/sources/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
         .filter(item => item.fullName.startsWith(`${NAMESPACE}__Data_Source`))
@@ -385,43 +460,65 @@ const getPackageFile = listOfMembers => {
   // retrieve metadata
   console.log("Backing up Core Connect metadata");
   execSync(
-    `sfdx force:mdapi:retrieve -k ./temp/metadataPackage.xml -u ${SANDBOX_ALIAS} -r ./temp/customMetadataBackup`,
+    `sfdx force:mdapi:retrieve -k ${convertUnixPathToWindows(
+      "./temp/metadataPackage.xml"
+    )} -u ${SANDBOX_ALIAS} -r ${convertUnixPathToWindows(
+      "./temp/customMetadataBackup"
+    )}`,
     { stdio: "inherit" }
   );
   // delete cards in order
   console.log("Deleting Core Connect metadata");
-  execSync(`sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/kvm`, {
-    stdio: "inherit"
-  });
   execSync(
-    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/items`,
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
+      "./temp/kvm"
+    )}`,
+    {
+      stdio: "inherit"
+    }
+  );
+  execSync(
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
+      "./temp/items"
+    )}`,
     { stdio: "inherit" }
   );
   execSync(
-    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/actions`,
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
+      "./temp/actions"
+    )}`,
     { stdio: "inherit" }
   );
   execSync(
-    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/cards`,
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
+      "./temp/cards"
+    )}`,
     { stdio: "inherit" }
   );
   execSync(
-    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/services`,
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
+      "./temp/services"
+    )}`,
     { stdio: "inherit" }
   );
   execSync(
-    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/sources`,
+    `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
+      "./temp/sources"
+    )}`,
     { stdio: "inherit" }
   );
 
   // retrieve installed packages as JSON
   execSync(
-    `sfdx force:data:soql:query -u ${SANDBOX_ALIAS} --usetoolingapi --json -q "SELECT Id,SubscriberPackage.Name,SubscriberPackageId,SubscriberPackageVersion.Id FROM InstalledSubscriberPackage" > ./temp/installedPackages.json`,
+    `sfdx force:data:soql:query -u ${SANDBOX_ALIAS} --usetoolingapi --json -q "SELECT Id,SubscriberPackage.Name,SubscriberPackageId,SubscriberPackageVersion.Id FROM InstalledSubscriberPackage" > ${convertUnixPathToWindows(
+      "./temp/installedPackages.json"
+    )}`,
     { stdio: "inherit" }
   );
   // find and remove core connect
-  const installedPackages = require("./temp/installedPackages.json").result
-    .records;
+  const installedPackages = require(convertUnixPathToWindows(
+    "./temp/installedPackages.json"
+  )).result.records;
   const coreConnectPackageVersionId = installedPackages.find(
     row => row.SubscriberPackage.Name === PACKAGE_NAME
   ).SubscriberPackageVersion.Id;
@@ -447,7 +544,9 @@ const getPackageFile = listOfMembers => {
   if (hasPermSets) {
     console.log("Restoring permission set assignments");
     execSync(
-      `sfdx force:data:bulk:upsert -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ./temp/permSetAssignments.csv -w 30 -i Id`,
+      `sfdx force:data:bulk:upsert -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ${convertUnixPathToWindows(
+        "./temp/permSetAssignments.csv"
+      )} -w 30 -i Id`,
       { stdio: "inherit" }
     );
   }
@@ -455,19 +554,25 @@ const getPackageFile = listOfMembers => {
   // deploy backed up metadata
   console.log("Restoring Core Connect metadata");
   execSync(
-    `sfdx force:mdapi:deploy -u ${SANDBOX_ALIAS} -f ./temp/customMetadataBackup/unpackaged.zip -w 30`,
+    `sfdx force:mdapi:deploy -u ${SANDBOX_ALIAS} -f ${convertUnixPathToWindows(
+      "./temp/customMetadataBackup/unpackaged.zip"
+    )} -w 30`,
     { stdio: "inherit" }
   );
   // deploy original dependencies
   if (dependenciesResult) {
     console.log("Restoring dependencies");
     execSync(
-      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ./temp/dependentMetadataBackup/unpackaged`,
+      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
+        "./temp/dependentMetadataBackup/unpackaged"
+      )}`,
       { stdio: "inherit" }
     );
   }
 
   // delete temp files
-  execSync(`rm -rf ./temp`, { stdio: "inherit" });
+  execSync(`rm -rf ${convertUnixPathToWindows("./temp")}`, {
+    stdio: "inherit"
+  });
   console.log("Done");
 })();

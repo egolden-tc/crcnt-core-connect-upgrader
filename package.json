@@ -9,9 +9,6 @@
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {
-    "dotenv": "^10.0.0"
-  },
   "bin": {
     "dcore:upgrade": "index.js"
   }
