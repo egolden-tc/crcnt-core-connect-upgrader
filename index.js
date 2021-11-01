@@ -216,14 +216,18 @@ const getPackageFile = listOfMembers => {
     // copy to removal directory
     if (IS_WINDOWS) {
       // use robocopy command
-      execSync(
-        `robocopy ${convertUnixPathToWindows(
-          "./temp/dependentMetadataBackup/unpackaged/"
-        )} ${convertUnixPathToWindows(
-          "./temp/dependentMetadataExtraction"
-        )} /e`,
-        { stdio: "inherit" }
-      );
+      try {
+        execSync(
+          `robocopy ${convertUnixPathToWindows(
+            "./temp/dependentMetadataBackup/unpackaged/"
+          )} ${convertUnixPathToWindows(
+            "./temp/dependentMetadataExtraction"
+          )} /e`,
+          { stdio: "inherit" }
+        );
+      } catch (error) {
+        console.warn(error);
+      }
     } else {
       // use cp command
       execSync(
