@@ -95,7 +95,9 @@ const extractDependency = (fileName, fileContent, metadataType) => {
 };
 
 const convertUnixPathToWindows = path => {
+  console.log(path);
   if (IS_WINDOWS) {
+    console.log(path.replace(/\//g, "\\"));
     return path.replace(/\//g, "\\");
   }
   return path;
