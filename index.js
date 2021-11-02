@@ -60,6 +60,12 @@ const removeFileExtension = fileName => {
   return fileName.replace(`.${extension}`, "");
 };
 
+const asyncForEach = async (array, callback) => {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array);
+  }
+};
+
 const extractDependency = async (fileName, fileContent, metadataType) => {
   let newFileContent = fileContent;
   switch (metadataType) {
@@ -68,7 +74,10 @@ const extractDependency = async (fileName, fileContent, metadataType) => {
       newFileContent = newFileContent.replace(DATA_SOURCE_PROVIDER_REGEX, "");
       newFileContent = newFileContent.replace(APEX_DATA_PROVIDER_REGEX, "");
       newFileContent = newFileContent.replace(OVERRIDE_REGEX, " ");
-      newFileContent = newFileContent.replace(APEX_DEFAULT_CONTEXT_REGEX, "new Map<String,Object>()");
+      newFileContent = newFileContent.replace(
+        APEX_DEFAULT_CONTEXT_REGEX,
+        "new Map<String,Object>()"
+      );
       break;
     case "AuraDefinitionBundle":
       newFileContent = newFileContent.replace(AURA_MULTICARD_REGEX, "");
@@ -245,51 +254,11 @@ const getPackageFile = listOfMembers => {
     }
     // modify extraction metadata
     // iterate dependencies
-   Object.keys(dependencies).forEach(type => {
+    await asyncForEach(Object.keys(dependencies), async type => {
       switch (type) {
         case "ApexClass":
-          dependencies[type].forEach(member => {
+          await asyncForEach(dependencies[type], async member => {
             const filePath = `./temp/dependentMetadataExtraction/classes/${member}.cls`;
-            const fileContent = fs.readFileSync(
-              convertUnixPathToWindows(filePath),
-              "utf8"
-            );
-            fs.writeFileSync(
-              filePath,
-              (await extractDependency(filePath, fileContent, type))
-            );
-          });
-          break;
-        case "AuraDefinitionBundle":
-          dependencies[type].forEach(member => {
-            const directory = `./temp/dependentMetadataExtraction/aura/${member}`;
-            if (fs.existsSync(convertUnixPathToWindows(directory))) {
-              // iterate files in directory and sort into html and js files
-              const files = fs.readdirSync(directory);
-              files
-                .filter(
-                  fileName =>
-                    fileName.endsWith(".app") || fileName.endsWith(".cmp")
-                )
-                .forEach(file => {
-                  const filePath = convertUnixPathToWindows(
-                    `${directory}/${file}`
-                  );
-
-                  const fileContent = fs.readFileSync(filePath, "utf8");
-                  fs.writeFileSync(
-                    filePath,
-                    await extractDependency(filePath, fileContent, type)
-                  );
-                });
-            }
-          });
-          break;
-        case "FlexiPage":
-          dependencies[type].forEach(member => {
-            const filePath = convertUnixPathToWindows(
-              `./temp/dependentMetadataExtraction/flexipages/${member}.flexipage`
-            );
             const fileContent = fs.readFileSync(
               convertUnixPathToWindows(filePath),
               "utf8"
@@ -299,19 +268,59 @@ const getPackageFile = listOfMembers => {
               await extractDependency(filePath, fileContent, type)
             );
           });
+
+          break;
+        case "AuraDefinitionBundle":
+          await asyncForEach(dependencies[type], async member => {
+            const directory = `./temp/dependentMetadataExtraction/aura/${member}`;
+            if (fs.existsSync(convertUnixPathToWindows(directory))) {
+              // iterate files in directory and sort into html and js files
+              const files = fs.readdirSync(directory);
+              await asyncForEach(
+                files.filter(
+                  fileName =>
+                    fileName.endsWith(".app") || fileName.endsWith(".cmp")
+                ),
+                async file => {
+                  const filePath = convertUnixPathToWindows(
+                    `${directory}/${file}`
+                  );
+
+                  const fileContent = fs.readFileSync(filePath, "utf8");
+                  fs.writeFileSync(
+                    filePath,
+                    await extractDependency(filePath, fileContent, type)
+                  );
+                }
+              );
+            }
+          });
+          break;
+        case "FlexiPage":
+          await asyncForEach(dependencies[type], async member => {
+            const filePath = convertUnixPathToWindows(
+              `./temp/dependentMetadataExtraction/flexipages/${member}.flexipage`
+            );
+            const fileContent = fs.readFileSync(
+              convertUnixPathToWindows(filePath),
+              "utf8"
+            );
+            const dep = await extractDependency(filePath, fileContent, type);
+            fs.writeFileSync(filePath, dep);
+          });
           break;
         case "LightningComponentBundle":
-          dependencies[type].forEach(member => {
+          await asyncForEach(dependencies[type], async member => {
             const directory = `./temp/dependentMetadataExtraction/lwc/${member}`;
             if (fs.existsSync(convertUnixPathToWindows(directory))) {
               // iterate files in directory and sort into html and js files
               const files = fs.readdirSync(convertUnixPathToWindows(directory));
-              files
-                .filter(
+              await asyncForEach(
+                files.filter(
                   fileName =>
                     fileName.endsWith(".js") || fileName.endsWith(".html")
-                )
-                .forEach(file => {
+                ),
+                async file => {
                   const filePath = convertUnixPathToWindows(
                     `${directory}/${file}`
                   );
@@ -320,7 +329,8 @@ const getPackageFile = listOfMembers => {
                     filePath,
                     await extractDependency(filePath, fileContent, type)
                   );
-                });
+                }
+              );
             }
           });
           break;
