@@ -6,7 +6,7 @@ const execSync = require("child_process").execSync;
 const IS_WINDOWS = process.platform === "win32";
 
 const SANDBOX_ALIAS = "humana";
-const NEW_PACKAGE_ID = "04t5e000000JkTdAAK";
+const NEW_PACKAGE_ID = "04t5e000000JkU2AAK";
 const NAMESPACE = "dcorealpha";
 const INSTALL_KEY = "";
 const PACKAGE_NAME = "CoreConnectAlpha";
@@ -36,6 +36,7 @@ const SINGLECARD_COMPONENT_REGEX = new RegExp(
 const CONTEXT_PROVIDER_REGEX = `implements ${NAMESPACE}.ContextProvider`;
 const DATA_SOURCE_PROVIDER_REGEX = `extends ${NAMESPACE}.DataSourceProvider`;
 const APEX_DATA_PROVIDER_REGEX = `extends ${NAMESPACE}.ApexDataProvider`;
+const APEX_DEFAULT_CONTEXT_REGEX = `dcorealpha\\.DefaultContextProvider\\.getDefaultContext\\([\\s\\S\\n\\r]*?\\);`;
 const AURA_MULTICARD_REGEX = new RegExp(
   `<${NAMESPACE}:ConnectMultiCard[\\s\\S].*[\\/|<\\/${NAMESPACE}:ConnectMultiCard>]>`,
   "g"
@@ -59,7 +60,7 @@ const removeFileExtension = fileName => {
   return fileName.replace(`.${extension}`, "");
 };
 
-const extractDependency = (fileName, fileContent, metadataType) => {
+const extractDependency = async (fileName, fileContent, metadataType) => {
   let newFileContent = fileContent;
   switch (metadataType) {
     case "ApexClass":
@@ -67,6 +68,7 @@ const extractDependency = (fileName, fileContent, metadataType) => {
       newFileContent = newFileContent.replace(DATA_SOURCE_PROVIDER_REGEX, "");
       newFileContent = newFileContent.replace(APEX_DATA_PROVIDER_REGEX, "");
       newFileContent = newFileContent.replace(OVERRIDE_REGEX, " ");
+      newFileContent = newFileContent.replace(APEX_DEFAULT_CONTEXT_REGEX, "new Map<String,Object>()");
       break;
     case "AuraDefinitionBundle":
       newFileContent = newFileContent.replace(AURA_MULTICARD_REGEX, "");
@@ -253,7 +255,7 @@ const getPackageFile = listOfMembers => {
             );
             fs.writeFileSync(
               filePath,
-              extractDependency(filePath, fileContent, type)
+              await extractDependency(filePath, fileContent, type)
             );
           });
           break;
@@ -276,7 +278,7 @@ const getPackageFile = listOfMembers => {
                   const fileContent = fs.readFileSync(filePath, "utf8");
                   fs.writeFileSync(
                     filePath,
-                    extractDependency(filePath, fileContent, type)
+                    await extractDependency(filePath, fileContent, type)
                   );
                 });
             }
@@ -293,7 +295,7 @@ const getPackageFile = listOfMembers => {
             );
             fs.writeFileSync(
               filePath,
-              extractDependency(filePath, fileContent, type)
+              await extractDependency(filePath, fileContent, type)
             );
           });
           break;
@@ -315,7 +317,7 @@ const getPackageFile = listOfMembers => {
                   const fileContent = fs.readFileSync(filePath, "utf8");
                   fs.writeFileSync(
                     filePath,
-                    extractDependency(filePath, fileContent, type)
+                    await extractDependency(filePath, fileContent, type)
                   );
                 });
             }
