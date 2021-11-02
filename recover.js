@@ -27,7 +27,11 @@ const convertUnixPathToWindows = (path) => {
   }
 
   // deploy backed up metadata
-  if (fs.existsSync(convertUnixPathToWindows("./temp/metadata.zip"))) {
+  if (
+    fs.existsSync(
+      convertUnixPathToWindows("./temp/customMetadataBackup/metadata.zip")
+    )
+  ) {
     console.log("Restoring Core Connect metadata");
     execSync(
       `sfdx force:mdapi:deploy -u ${SANDBOX_ALIAS} -f ${convertUnixPathToWindows(
@@ -39,13 +43,13 @@ const convertUnixPathToWindows = (path) => {
   // deploy original dependencies
   if (
     fs.existsSync(
-      convertUnixPathToWindows("./temp/dependendMetadataBackup/unpackaged")
+      convertUnixPathToWindows("./temp/dependendMetadataBackup/unpackaged.zip")
     )
   ) {
     console.log("Restoring dependencies");
     execSync(
-      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
-        "./temp/dependentMetadataBackup/unpackaged"
+      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -f ${convertUnixPathToWindows(
+        "./temp/dependentMetadataBackup/unpackaged.zip"
       )}`,
       { stdio: "inherit" }
     );
