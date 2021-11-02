@@ -33,7 +33,7 @@ const convertUnixPathToWindows = (path) => {
   // deploy backed up metadata
   if (
     fs.existsSync(
-      convertUnixPathToWindows("./temp/customMetadataBackup/metadata.zip")
+      convertUnixPathToWindows("./temp/customMetadataBackup/unpackaged.zip")
     )
   ) {
     console.log("Restoring Core Connect metadata");
@@ -47,7 +47,7 @@ const convertUnixPathToWindows = (path) => {
   // deploy original dependencies
   if (
     fs.existsSync(
-      convertUnixPathToWindows("./temp/dependendMetadataBackup/unpackaged.zip")
+      convertUnixPathToWindows("./temp/dependentMetadataBackup/unpackaged.zip")
     )
   ) {
     console.log("Restoring dependencies");
