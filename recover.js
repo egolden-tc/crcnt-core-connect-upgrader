@@ -18,12 +18,16 @@ const convertUnixPathToWindows = (path) => {
     fs.existsSync(convertUnixPathToWindows("./temp/permSetAssignments.csv"))
   ) {
     console.log("Restoring permission set assignments");
-    execSync(
-      `sfdx force:data:bulk:upsert -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ${convertUnixPathToWindows(
-        "./temp/permSetAssignments.csv"
-      )} -w 30 -i Id`,
-      { stdio: "inherit" }
-    );
+    try {
+      execSync(
+        `sfdx force:data:bulk:upsert -u ${SANDBOX_ALIAS} -s PermissionSetAssignment -f ${convertUnixPathToWindows(
+          "./temp/permSetAssignments.csv"
+        )} -w 30 -i Id`,
+        { stdio: "inherit" }
+      );
+    } catch (e) {
+      console.warn(e);
+    }
   }
 
   // deploy backed up metadata
