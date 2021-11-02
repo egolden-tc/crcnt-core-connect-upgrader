@@ -78,7 +78,7 @@ const extractDependency = async (fileName, fileContent, metadataType) => {
       newFileContent = newFileContent.replace(OVERRIDE_REGEX, " ");
       newFileContent = newFileContent.replace(
         APEX_DEFAULT_CONTEXT_REGEX,
-        "new Map<String,Object>()"
+        "new Map<String,Object>();"
       );
       break;
     case "AuraDefinitionBundle":
