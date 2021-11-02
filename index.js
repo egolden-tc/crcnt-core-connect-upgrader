@@ -121,6 +121,7 @@ const getPackageFile = listOfMembers => {
     PACKAGE_XML_END
   );
 };
+
 (async () => {
   // make temp directory if not exist
   execSync(
@@ -244,7 +245,7 @@ const getPackageFile = listOfMembers => {
     }
     // modify extraction metadata
     // iterate dependencies
-    Object.keys(dependencies).forEach(type => {
+   Object.keys(dependencies).forEach(type => {
       switch (type) {
         case "ApexClass":
           dependencies[type].forEach(member => {
@@ -255,7 +256,7 @@ const getPackageFile = listOfMembers => {
             );
             fs.writeFileSync(
               filePath,
-              await extractDependency(filePath, fileContent, type)
+              (await extractDependency(filePath, fileContent, type))
             );
           });
           break;
