@@ -36,7 +36,9 @@ const SINGLECARD_COMPONENT_REGEX = new RegExp(
 const CONTEXT_PROVIDER_REGEX = `implements ${NAMESPACE}.ContextProvider`;
 const DATA_SOURCE_PROVIDER_REGEX = `extends ${NAMESPACE}.DataSourceProvider`;
 const APEX_DATA_PROVIDER_REGEX = `extends ${NAMESPACE}.ApexDataProvider`;
-const APEX_DEFAULT_CONTEXT_REGEX = `dcorealpha\\.DefaultContextProvider\\.getDefaultContext\\([\\s\\S\\n\\r]*?\\);`;
+const APEX_DEFAULT_CONTEXT_REGEX = new RegExp(
+  `${NAMESPACE}\\.DefaultContextProvider\\.getDefaultContext\\([\\s\\S\\n\\r]*?\\);`
+);
 const AURA_MULTICARD_REGEX = new RegExp(
   `<${NAMESPACE}:ConnectMultiCard[\\s\\S].*[\\/|<\\/${NAMESPACE}:ConnectMultiCard>]>`,
   "g"
@@ -108,9 +110,7 @@ const extractDependency = async (fileName, fileContent, metadataType) => {
 };
 
 const convertUnixPathToWindows = path => {
-  console.log(path);
   if (IS_WINDOWS) {
-    console.log(path.replace(/\//g, "\\"));
     return path.replace(/\//g, "\\");
   }
   return path;
