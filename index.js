@@ -6,7 +6,7 @@ const execSync = require("child_process").execSync;
 const IS_WINDOWS = process.platform === "win32";
 
 const SANDBOX_ALIAS = "humana";
-const NEW_PACKAGE_ID = "04t5e000000JkU2AAK";
+const NEW_PACKAGE_ID = "04t5e000000JkafAAC";
 const NAMESPACE = "dcorealpha";
 const INSTALL_KEY = "";
 const PACKAGE_NAME = "CoreConnectAlpha";
@@ -57,7 +57,7 @@ const LWC_CARD_EXTENSION_IMPORT_REGEX = new RegExp(
 );
 const LWC_CARD_EXTENSION_EXTENDS_REGEX = `extends FlexiCard`;
 const OVERRIDE_REGEX = ` override `;
-const removeFileExtension = fileName => {
+const removeFileExtension = (fileName) => {
   const extension = fileName.split(".").pop();
   return fileName.replace(`.${extension}`, "");
 };
@@ -109,19 +109,19 @@ const extractDependency = async (fileName, fileContent, metadataType) => {
   return newFileContent;
 };
 
-const convertUnixPathToWindows = path => {
+const convertUnixPathToWindows = (path) => {
   if (IS_WINDOWS) {
     return path.replace(/\//g, "\\");
   }
   return path;
 };
 
-const getPackageMember = memberName => {
+const getPackageMember = (memberName) => {
   return `<members>${memberName}</members>
   `;
 };
 
-const getPackageFile = listOfMembers => {
+const getPackageFile = (listOfMembers) => {
   return (
     PACKAGE_XML_START +
     listOfMembers.reduce((acc, member) => {
@@ -136,7 +136,7 @@ const getPackageFile = listOfMembers => {
   execSync(
     `mkdir ${IS_WINDOWS ? "" : " -p "} ${convertUnixPathToWindows("./temp")}`,
     {
-      stdio: "inherit"
+      stdio: "inherit",
     }
   );
   // retrieve perm permSetAssignments
@@ -153,7 +153,7 @@ const getPackageFile = listOfMembers => {
       await fsPromises.readFile(
         convertUnixPathToWindows("./temp/permSetAssignments.csv"),
         {
-          encoding: "utf-8"
+          encoding: "utf-8",
         }
       )
     )?.trim().length > 0;
@@ -181,9 +181,9 @@ const getPackageFile = listOfMembers => {
     "AuraDefinitionBundle",
     "FlexiPage",
     "LightningComponentBundle",
-    "ApexClass"
+    "ApexClass",
   ];
-  dependenciesResult = dependenciesResult.filter(dep =>
+  dependenciesResult = dependenciesResult.filter((dep) =>
     SUPPORTED_TYPES.includes(dep.MetadataComponentType)
   );
   if (dependenciesResult) {
@@ -201,11 +201,11 @@ const getPackageFile = listOfMembers => {
       return acc;
     }, {});
     let dependentMetadataXml = PACKAGE_XML_BASE;
-    Object.keys(dependencies).forEach(type => {
+    Object.keys(dependencies).forEach((type) => {
       dependentMetadataXml += `<types>
         <name>${type}</name>
         ${dependencies[type]
-          .map(member => {
+          .map((member) => {
             return getPackageMember(member);
           })
           .join("")}
@@ -254,10 +254,10 @@ const getPackageFile = listOfMembers => {
     }
     // modify extraction metadata
     // iterate dependencies
-    await asyncForEach(Object.keys(dependencies), async type => {
+    await asyncForEach(Object.keys(dependencies), async (type) => {
       switch (type) {
         case "ApexClass":
-          await asyncForEach(dependencies[type], async member => {
+          await asyncForEach(dependencies[type], async (member) => {
             const filePath = `./temp/dependentMetadataExtraction/classes/${member}.cls`;
             const fileContent = fs.readFileSync(
               convertUnixPathToWindows(filePath),
@@ -271,17 +271,17 @@ const getPackageFile = listOfMembers => {
 
           break;
         case "AuraDefinitionBundle":
-          await asyncForEach(dependencies[type], async member => {
+          await asyncForEach(dependencies[type], async (member) => {
             const directory = `./temp/dependentMetadataExtraction/aura/${member}`;
             if (fs.existsSync(convertUnixPathToWindows(directory))) {
               // iterate files in directory and sort into html and js files
               const files = fs.readdirSync(directory);
               await asyncForEach(
                 files.filter(
-                  fileName =>
+                  (fileName) =>
                     fileName.endsWith(".app") || fileName.endsWith(".cmp")
                 ),
-                async file => {
+                async (file) => {
                   const filePath = convertUnixPathToWindows(
                     `${directory}/${file}`
                   );
@@ -297,7 +297,7 @@ const getPackageFile = listOfMembers => {
           });
           break;
         case "FlexiPage":
-          await asyncForEach(dependencies[type], async member => {
+          await asyncForEach(dependencies[type], async (member) => {
             const filePath = convertUnixPathToWindows(
               `./temp/dependentMetadataExtraction/flexipages/${member}.flexipage`
             );
@@ -310,17 +310,17 @@ const getPackageFile = listOfMembers => {
           });
           break;
         case "LightningComponentBundle":
-          await asyncForEach(dependencies[type], async member => {
+          await asyncForEach(dependencies[type], async (member) => {
             const directory = `./temp/dependentMetadataExtraction/lwc/${member}`;
             if (fs.existsSync(convertUnixPathToWindows(directory))) {
               // iterate files in directory and sort into html and js files
               const files = fs.readdirSync(convertUnixPathToWindows(directory));
               await asyncForEach(
                 files.filter(
-                  fileName =>
+                  (fileName) =>
                     fileName.endsWith(".js") || fileName.endsWith(".html")
                 ),
-                async file => {
+                async (file) => {
                   const filePath = convertUnixPathToWindows(
                     `${directory}/${file}`
                   );
@@ -359,7 +359,7 @@ const getPackageFile = listOfMembers => {
   const exportedMetadata = require(convertUnixPathToWindows(
     "./temp/customMetadata.json"
   ));
-  const dcoreMetadata = exportedMetadata.filter(row => {
+  const dcoreMetadata = exportedMetadata.filter((row) => {
     return (
       row.fullName.startsWith(`${NAMESPACE}__`) &&
       row.namespacePrefix !== NAMESPACE
@@ -368,7 +368,7 @@ const getPackageFile = listOfMembers => {
   // generate XML manifests
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/metadataPackage.xml"),
-    getPackageFile(dcoreMetadata.map(row => row.fullName))
+    getPackageFile(dcoreMetadata.map((row) => row.fullName))
   );
   // full list for retrieve
 
@@ -378,7 +378,7 @@ const getPackageFile = listOfMembers => {
       "./temp/kvm"
     )}`,
     {
-      stdio: "inherit"
+      stdio: "inherit",
     }
   );
   await fsPromises.writeFile(
@@ -389,10 +389,10 @@ const getPackageFile = listOfMembers => {
     convertUnixPathToWindows("./temp/kvm/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
-        .filter(item =>
+        .filter((item) =>
           item.fullName.startsWith(`${NAMESPACE}__Key_Value_Mapping`)
         )
-        .map(row => row.fullName)
+        .map((row) => row.fullName)
     )
   );
   // actiom defs
@@ -401,7 +401,7 @@ const getPackageFile = listOfMembers => {
       "./temp/actions"
     )}`,
     {
-      stdio: "inherit"
+      stdio: "inherit",
     }
   );
   await fsPromises.writeFile(
@@ -412,10 +412,10 @@ const getPackageFile = listOfMembers => {
     convertUnixPathToWindows("./temp/actions/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
-        .filter(item =>
+        .filter((item) =>
           item.fullName.startsWith(`${NAMESPACE}__Action_Definition`)
         )
-        .map(row => row.fullName)
+        .map((row) => row.fullName)
     )
   );
 
@@ -425,7 +425,7 @@ const getPackageFile = listOfMembers => {
       "./temp/items"
     )}`,
     {
-      stdio: "inherit"
+      stdio: "inherit",
     }
   );
   await fsPromises.writeFile(
@@ -436,10 +436,10 @@ const getPackageFile = listOfMembers => {
     convertUnixPathToWindows("./temp/items/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
-        .filter(item =>
+        .filter((item) =>
           item.fullName.startsWith(`${NAMESPACE}__Card_Configuration_Item`)
         )
-        .map(row => row.fullName)
+        .map((row) => row.fullName)
     )
   );
 
@@ -449,7 +449,7 @@ const getPackageFile = listOfMembers => {
       "./temp/cards"
     )}`,
     {
-      stdio: "inherit"
+      stdio: "inherit",
     }
   );
   await fsPromises.writeFile(
@@ -460,10 +460,10 @@ const getPackageFile = listOfMembers => {
     convertUnixPathToWindows("./temp/cards/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
-        .filter(item =>
+        .filter((item) =>
           item.fullName.startsWith(`${NAMESPACE}__Card_Configuration.`)
         )
-        .map(row => row.fullName)
+        .map((row) => row.fullName)
     )
   );
 
@@ -473,7 +473,7 @@ const getPackageFile = listOfMembers => {
       "./temp/services"
     )}`,
     {
-      stdio: "inherit"
+      stdio: "inherit",
     }
   );
   await fsPromises.writeFile(
@@ -484,8 +484,10 @@ const getPackageFile = listOfMembers => {
     convertUnixPathToWindows("./temp/services/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
-        .filter(item => item.fullName.startsWith(`${NAMESPACE}__Data_Service`))
-        .map(row => row.fullName)
+        .filter((item) =>
+          item.fullName.startsWith(`${NAMESPACE}__Data_Service`)
+        )
+        .map((row) => row.fullName)
     )
   );
 
@@ -495,7 +497,7 @@ const getPackageFile = listOfMembers => {
       "./temp/sources"
     )}`,
     {
-      stdio: "inherit"
+      stdio: "inherit",
     }
   );
   await fsPromises.writeFile(
@@ -506,8 +508,8 @@ const getPackageFile = listOfMembers => {
     convertUnixPathToWindows("./temp/sources/destructiveChanges.xml"),
     getPackageFile(
       dcoreMetadata
-        .filter(item => item.fullName.startsWith(`${NAMESPACE}__Data_Source`))
-        .map(row => row.fullName)
+        .filter((item) => item.fullName.startsWith(`${NAMESPACE}__Data_Source`))
+        .map((row) => row.fullName)
     )
   );
 
@@ -528,7 +530,7 @@ const getPackageFile = listOfMembers => {
       "./temp/kvm"
     )}`,
     {
-      stdio: "inherit"
+      stdio: "inherit",
     }
   );
   execSync(
@@ -574,7 +576,7 @@ const getPackageFile = listOfMembers => {
     "./temp/installedPackages.json"
   )).result.records;
   const coreConnectPackageVersionId = installedPackages.find(
-    row => row.SubscriberPackage.Name === PACKAGE_NAME
+    (row) => row.SubscriberPackage.Name === PACKAGE_NAME
   ).SubscriberPackageVersion.Id;
   console.log("Uninstalling old Core Connect package version");
   execSync(
@@ -626,7 +628,7 @@ const getPackageFile = listOfMembers => {
 
   // delete temp files
   execSync(`rm -rf ${convertUnixPathToWindows("./temp")}`, {
-    stdio: "inherit"
+    stdio: "inherit",
   });
   console.log("Done");
 })();
