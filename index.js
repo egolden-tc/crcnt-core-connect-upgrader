@@ -627,8 +627,15 @@ const getPackageFile = (listOfMembers) => {
   }
 
   // delete temp files
-  execSync(`rm -rf ${convertUnixPathToWindows("./temp")}`, {
-    stdio: "inherit",
-  });
+  if (IS_WINDOWS) {
+    // delete directory on windows
+    execSync(`rmdir /s /q ${convertUnixPathToWindows("./temp")}`, {
+      stdio: "inherit",
+    });
+  } else {
+    execSync(`rm -rf ${convertUnixPathToWindows("./temp")}`, {
+      stdio: "inherit",
+    });
+  }
   console.log("Done");
 })();
