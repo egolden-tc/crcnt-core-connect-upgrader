@@ -6,7 +6,7 @@ const execSync = require("child_process").execSync;
 const IS_WINDOWS = process.platform === "win32";
 
 const SANDBOX_ALIAS = "humana";
-const NEW_PACKAGE_ID = "04t5e000000JksCAAS";
+const NEW_PACKAGE_ID = "04t5e000000JksHAAS";
 const NAMESPACE = "dcorealpha";
 const INSTALL_KEY = "";
 const PACKAGE_NAME = "CoreConnectAlpha";
