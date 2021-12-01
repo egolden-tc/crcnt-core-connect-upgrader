@@ -1,0 +1,249 @@
+{
+  "status": 0,
+  "result": {
+    "done": true,
+    "totalSize": 30,
+    "records": [
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXGEA2"
+        },
+        "DeveloperName": "Demo_SDOH_ContentTypeParameter",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXHEA2"
+        },
+        "DeveloperName": "Demo_SDOH_ResultMapping",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXIEA2"
+        },
+        "DeveloperName": "Email_Error_1",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXJEA2"
+        },
+        "DeveloperName": "Email_Error_1_Con_2",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXKEA2"
+        },
+        "DeveloperName": "Email_Error_2",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXLEA2"
+        },
+        "DeveloperName": "Email_Error_2_Con_1",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXMEA2"
+        },
+        "DeveloperName": "Email_Error_2_Con_2",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXNEA2"
+        },
+        "DeveloperName": "Email_Hide_on_Create",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXOEA2"
+        },
+        "DeveloperName": "Email_Hide_on_View",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXPEA2"
+        },
+        "DeveloperName": "KVM_1632231572390_Test_Account_Source",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXQEA2"
+        },
+        "DeveloperName": "KVM_1632231572392_Test_SFDC_Type_Demo",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXREA2"
+        },
+        "DeveloperName": "KVM_1632231744067_MC_Lookup_Source_Demo",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXSEA2"
+        },
+        "DeveloperName": "KVM_1632292362004_MC_Allergies_List",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXTEA2"
+        },
+        "DeveloperName": "KVM_1632295924364_OwnerName_Task",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXUEA2"
+        },
+        "DeveloperName": "KVM_1632297151957_OwnerName_Event",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXVEA2"
+        },
+        "DeveloperName": "KVM_1632298599177_Task_Source_Activity",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXWEA2"
+        },
+        "DeveloperName": "KVM_1632298599178_Event_Source_Activity",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXXEA2"
+        },
+        "DeveloperName": "KVM_1632339954696_Subject_Activity",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXYEA2"
+        },
+        "DeveloperName": "KVM_1632397488230_Status_Activity",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXZEA2"
+        },
+        "DeveloperName": "RS_SCPOP2",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXaEAM"
+        },
+        "DeveloperName": "SC_FirstName",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXbEAM"
+        },
+        "DeveloperName": "SampleContactCreateAccountId",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXcEAM"
+        },
+        "DeveloperName": "SampleContactCreateConfigName",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXdEAM"
+        },
+        "DeveloperName": "SampleContactUpdateConfigName",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXeEAM"
+        },
+        "DeveloperName": "SampleContactUpdateRecord",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXfEAM"
+        },
+        "DeveloperName": "SampleEmailDisableList1",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXgEAM"
+        },
+        "DeveloperName": "SampleEmailMessageConChild1",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXhEAM"
+        },
+        "DeveloperName": "Sample_Contact_Card_Footer_URL",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXiEAM"
+        },
+        "DeveloperName": "Sample_Create_Contact_ActioName",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Key_Value_Mapping__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Key_Value_Mapping__mdt/m0D5f000000tVXjEAM"
+        },
+        "DeveloperName": "Sample_Create_Contact_recordId",
+        "NamespacePrefix": "dcorealpha"
+      }
+    ]
+  }
+}

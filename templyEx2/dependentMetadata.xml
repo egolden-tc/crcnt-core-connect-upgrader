@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata"><types>
+        <name>ApexClass</name>
+        <members>SampleContextProvider</members>
+  
+      </types><types>
+        <name>AuraDefinitionBundle</name>
+        <members>SampleCardDevUseApp</members>
+  <members>SampleCardDevUse</members>
+  
+      </types><version>53.0</version>
+</Package>

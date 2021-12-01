@@ -1,0 +1,65 @@
+{
+  "status": 0,
+  "result": {
+    "done": true,
+    "totalSize": 7,
+    "records": [
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Service__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Service__mdt/m0A5f000000tv9uEAA"
+        },
+        "DeveloperName": "Demo_SDOH_Service",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Service__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Service__mdt/m0A5f000000tv9yEAA"
+        },
+        "DeveloperName": "Sample_Compound_Data_Service",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Service__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Service__mdt/m0A5f000000tv9zEAA"
+        },
+        "DeveloperName": "Sample_Contacts_Create_Service",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Service__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Service__mdt/m0A5f000000tvA0EAI"
+        },
+        "DeveloperName": "Sample_Contacts_Service",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Service__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Service__mdt/m0A5f000000tvA1EAI"
+        },
+        "DeveloperName": "Sample_Event_Service",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Service__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Service__mdt/m0A5f000000tvA2EAI"
+        },
+        "DeveloperName": "Sample_Task_Service",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Service__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Service__mdt/m0A5f000000tvA5EAI"
+        },
+        "DeveloperName": "Test_Service",
+        "NamespacePrefix": "dcorealpha"
+      }
+    ]
+  }
+}

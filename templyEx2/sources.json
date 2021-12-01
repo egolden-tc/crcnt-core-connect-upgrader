@@ -1,0 +1,57 @@
+{
+  "status": 0,
+  "result": {
+    "done": true,
+    "totalSize": 6,
+    "records": [
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Source__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Source__mdt/m0C5f000000ta4gEAA"
+        },
+        "DeveloperName": "Activity_Source",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Source__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Source__mdt/m0C5f000000ta4lEAA"
+        },
+        "DeveloperName": "Demo_SDOH_Read_Data_Source",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Source__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Source__mdt/m0C5f000000ta4mEAA"
+        },
+        "DeveloperName": "Event_Source",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Source__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Source__mdt/m0C5f000000ta4qEAA"
+        },
+        "DeveloperName": "Sample_Contacts_List_Source",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Source__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Source__mdt/m0C5f000000ta4rEAA"
+        },
+        "DeveloperName": "Task_Source",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Data_Source__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Data_Source__mdt/m0C5f000000ta4sEAA"
+        },
+        "DeveloperName": "Test_Account_Source",
+        "NamespacePrefix": "dcorealpha"
+      }
+    ]
+  }
+}

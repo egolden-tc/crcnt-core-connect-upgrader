@@ -1,0 +1,145 @@
+{
+  "status": 0,
+  "result": {
+    "done": true,
+    "totalSize": 17,
+    "records": [
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8kAAE"
+        },
+        "DeveloperName": "Field_1_1632297393075_Activity_Details",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8lAAE"
+        },
+        "DeveloperName": "Field_2_1632297527886_Activity_Details",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8mAAE"
+        },
+        "DeveloperName": "Field_3_1632297558059_Activity_Details",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8nAAE"
+        },
+        "DeveloperName": "Field_4_1632297583949_Activity_Details",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8oAAE"
+        },
+        "DeveloperName": "Field_5_1632297623450_Activity_Details",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8pAAE"
+        },
+        "DeveloperName": "Field_5_1632298242507_Activity_Details",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8qAAE"
+        },
+        "DeveloperName": "Field_7_1632382563664_Activity_Details",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8rAAE"
+        },
+        "DeveloperName": "SC_Birth_Date",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8sAAE"
+        },
+        "DeveloperName": "SC_Email",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8tAAE"
+        },
+        "DeveloperName": "SC_First_Name",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8uAAE"
+        },
+        "DeveloperName": "SC_First_Name_Filter",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8vAAE"
+        },
+        "DeveloperName": "SC_Last_Name",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8wAAE"
+        },
+        "DeveloperName": "SC_Last_Name_FIlter",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH8xAAE"
+        },
+        "DeveloperName": "SC_Name",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH90AAE"
+        },
+        "DeveloperName": "Sample_Email",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH91AAE"
+        },
+        "DeveloperName": "Sample_First_Name",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Card_Configuration_Item__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Card_Configuration_Item__mdt/m085f000000yH92AAE"
+        },
+        "DeveloperName": "Sample_Last_Name",
+        "NamespacePrefix": "dcorealpha"
+      }
+    ]
+  }
+}

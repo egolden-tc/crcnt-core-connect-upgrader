@@ -1,0 +1,41 @@
+{
+  "status": 0,
+  "result": {
+    "done": true,
+    "totalSize": 4,
+    "records": [
+      {
+        "attributes": {
+          "type": "dcorealpha__Action_Definition__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Action_Definition__mdt/m075f000000yQnBAAU"
+        },
+        "DeveloperName": "SampleContactCreateForm",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Action_Definition__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Action_Definition__mdt/m075f000000yQnCAAU"
+        },
+        "DeveloperName": "SampleContactUpdateForm",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Action_Definition__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Action_Definition__mdt/m075f000000yQnDAAU"
+        },
+        "DeveloperName": "Sample_Card_Footer_Action",
+        "NamespacePrefix": "dcorealpha"
+      },
+      {
+        "attributes": {
+          "type": "dcorealpha__Action_Definition__mdt",
+          "url": "/services/data/v53.0/sobjects/dcorealpha__Action_Definition__mdt/m075f000000yQnEAAU"
+        },
+        "DeveloperName": "Sample_New_Contact_Creation",
+        "NamespacePrefix": "dcorealpha"
+      }
+    ]
+  }
+}
