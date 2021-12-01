@@ -18,7 +18,7 @@ const generateRandomString = (length) => {
 const IS_WINDOWS = process.platform === "win32";
 const TEMP_DIR = "temp" + generateRandomString(5);
 const SANDBOX_ALIAS = "humana";
-const NEW_PACKAGE_ID = "04t5e000000JksvAAC";
+const NEW_PACKAGE_ID = "04t5e000000Jkt0AAC";
 const NAMESPACE = "dcorealpha";
 const INSTALL_KEY = "";
 const PACKAGE_NAME = "CoreConnectAlpha";
