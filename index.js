@@ -6,7 +6,7 @@ const execSync = require("child_process").execSync;
 const IS_WINDOWS = process.platform === "win32";
 
 const SANDBOX_ALIAS = "humana";
-const NEW_PACKAGE_ID = "04t5e000000JksWAAS";
+const NEW_PACKAGE_ID = "04t5e000000JksvAAC";
 const NAMESPACE = "dcorealpha";
 const INSTALL_KEY = "";
 const PACKAGE_NAME = "CoreConnectAlpha";
@@ -350,25 +350,75 @@ const getPackageFile = (listOfMembers) => {
   // retrieve list of custom metadata
   console.log("Identifying existing Core Connect metadata");
   execSync(
-    `sfdx force:mdapi:listmetadata -m CustomMetadata -u ${SANDBOX_ALIAS} --json -f ${convertUnixPathToWindows(
-      "./temp/customMetadata.json"
-    )}`,
-    { stdio: "inherit" }
+    `sfdx force:data:soql:query -q "SELECT DeveloperName,NamespacePrefix FROM ${NAMESPACE}__Card_Configuration__mdt" -u ${SANDBOX_ALIAS} --json > ${convertUnixPathToWindows(
+      "./temp/cards.json"
+    )}`
   );
-  // filter to just core connect metadata
-  const exportedMetadata = require(convertUnixPathToWindows(
-    "./temp/customMetadata.json"
-  ));
-  const dcoreMetadata = exportedMetadata.filter((row) => {
-    return (
-      row.fullName.startsWith(`${NAMESPACE}__`) &&
-      row.namespacePrefix !== NAMESPACE
+  execSync(
+    `sfdx force:data:soql:query -q "SELECT DeveloperName,NamespacePrefix FROM ${NAMESPACE}__Card_Configuration_Item__mdt" -u ${SANDBOX_ALIAS} --json > ${convertUnixPathToWindows(
+      "./temp/items.json"
+    )}`
+  );
+  execSync(
+    `sfdx force:data:soql:query -q "SELECT DeveloperName,NamespacePrefix FROM ${NAMESPACE}__Action_Definition__mdt" -u ${SANDBOX_ALIAS} --json > ${convertUnixPathToWindows(
+      "./temp/actions.json"
+    )}`
+  );
+  execSync(
+    `sfdx force:data:soql:query -q "SELECT DeveloperName,NamespacePrefix FROM ${NAMESPACE}__Key_Value_Mapping__mdt" -u ${SANDBOX_ALIAS} --json > ${convertUnixPathToWindows(
+      "./temp/kvms.json"
+    )}`
+  );
+  execSync(
+    `sfdx force:data:soql:query -q "SELECT DeveloperName,NamespacePrefix FROM ${NAMESPACE}__Data_Service__mdt" -u ${SANDBOX_ALIAS} --json > ${convertUnixPathToWindows(
+      "./temp/services.json"
+    )}`
+  );
+  execSync(
+    `sfdx force:data:soql:query -q "SELECT DeveloperName,NamespacePrefix FROM ${NAMESPACE}__Data_Source__mdt" -u ${SANDBOX_ALIAS} --json > ${convertUnixPathToWindows(
+      "./temp/sources.json"
+    )}`
+  );
+
+  const exportedCards = require(convertUnixPathToWindows("./temp/cards.json"))
+    .result.records.filter((record) => record.NamespacePrefix !== NAMESPACE)
+    .map((card) => `${NAMESPACE}__Card_Configuration.${card.DeveloperName}`);
+  const exportedItems = require(convertUnixPathToWindows("./temp/items.json"))
+    .result.records.filter((record) => record.NamespacePrefix !== NAMESPACE)
+    .map(
+      (item) => `${NAMESPACE}__Card_Configuration_Item.${item.DeveloperName}`
     );
-  });
+  const exportedActions = require(convertUnixPathToWindows(
+    "./temp/actions.json"
+  ))
+    .result.records.filter((record) => record.NamespacePrefix !== NAMESPACE)
+    .map((action) => `${NAMESPACE}__Action_Definition.${action.DeveloperName}`);
+  const exportedKvms = require(convertUnixPathToWindows("./temp/kvms.json"))
+    .result.records.filter((record) => record.NamespacePrefix !== NAMESPACE)
+    .map((kvm) => `${NAMESPACE}__Key_Value_Mapping.${kvm.DeveloperName}`);
+  const exportedServices = require(convertUnixPathToWindows(
+    "./temp/services.json"
+  ))
+    .result.records.filter((record) => record.NamespacePrefix !== NAMESPACE)
+    .map((service) => `${NAMESPACE}__Data_Service.${service.DeveloperName}`);
+  const exportedSources = require(convertUnixPathToWindows(
+    "./temp/sources.json"
+  ))
+    .result.records.filter((record) => record.NamespacePrefix !== NAMESPACE)
+    .map((source) => `${NAMESPACE}__Data_Source.${source.DeveloperName}`);
+
+  const dcoreMetadata = exportedCards.concat(
+    exportedItems,
+    exportedActions,
+    exportedKvms,
+    exportedServices,
+    exportedSources
+  );
+
   // generate XML manifests
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/metadataPackage.xml"),
-    getPackageFile(dcoreMetadata.map((row) => row.fullName))
+    getPackageFile(dcoreMetadata)
   );
   // full list for retrieve
 
@@ -388,11 +438,9 @@ const getPackageFile = (listOfMembers) => {
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/kvm/destructiveChanges.xml"),
     getPackageFile(
-      dcoreMetadata
-        .filter((item) =>
-          item.fullName.startsWith(`${NAMESPACE}__Key_Value_Mapping`)
-        )
-        .map((row) => row.fullName)
+      dcoreMetadata.filter((item) =>
+        item.startsWith(`${NAMESPACE}__Key_Value_Mapping`)
+      )
     )
   );
   // actiom defs
@@ -411,11 +459,9 @@ const getPackageFile = (listOfMembers) => {
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/actions/destructiveChanges.xml"),
     getPackageFile(
-      dcoreMetadata
-        .filter((item) =>
-          item.fullName.startsWith(`${NAMESPACE}__Action_Definition`)
-        )
-        .map((row) => row.fullName)
+      dcoreMetadata.filter((item) =>
+        item.startsWith(`${NAMESPACE}__Action_Definition`)
+      )
     )
   );
 
@@ -435,11 +481,9 @@ const getPackageFile = (listOfMembers) => {
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/items/destructiveChanges.xml"),
     getPackageFile(
-      dcoreMetadata
-        .filter((item) =>
-          item.fullName.startsWith(`${NAMESPACE}__Card_Configuration_Item`)
-        )
-        .map((row) => row.fullName)
+      dcoreMetadata.filter((item) =>
+        item.startsWith(`${NAMESPACE}__Card_Configuration_Item`)
+      )
     )
   );
 
@@ -459,11 +503,9 @@ const getPackageFile = (listOfMembers) => {
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/cards/destructiveChanges.xml"),
     getPackageFile(
-      dcoreMetadata
-        .filter((item) =>
-          item.fullName.startsWith(`${NAMESPACE}__Card_Configuration.`)
-        )
-        .map((row) => row.fullName)
+      dcoreMetadata.filter((item) =>
+        item.startsWith(`${NAMESPACE}__Card_Configuration.`)
+      )
     )
   );
 
@@ -483,11 +525,9 @@ const getPackageFile = (listOfMembers) => {
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/services/destructiveChanges.xml"),
     getPackageFile(
-      dcoreMetadata
-        .filter((item) =>
-          item.fullName.startsWith(`${NAMESPACE}__Data_Service`)
-        )
-        .map((row) => row.fullName)
+      dcoreMetadata.filter((item) =>
+        item.startsWith(`${NAMESPACE}__Data_Service`)
+      )
     )
   );
 
@@ -507,9 +547,9 @@ const getPackageFile = (listOfMembers) => {
   await fsPromises.writeFile(
     convertUnixPathToWindows("./temp/sources/destructiveChanges.xml"),
     getPackageFile(
-      dcoreMetadata
-        .filter((item) => item.fullName.startsWith(`${NAMESPACE}__Data_Source`))
-        .map((row) => row.fullName)
+      dcoreMetadata.filter((item) =>
+        item.startsWith(`${NAMESPACE}__Data_Source`)
+      )
     )
   );
 
