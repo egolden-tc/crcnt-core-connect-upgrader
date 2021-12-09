@@ -2,6 +2,7 @@
 const fs = require("fs");
 const fsPromises = fs.promises;
 const execSync = require("child_process").execSync;
+const basePath = __dirname + "\\";
 
 // generate random string
 const generateRandomString = (length) => {
@@ -123,7 +124,7 @@ const extractDependency = async (fileName, fileContent, metadataType) => {
 
 const convertUnixPathToWindows = (path) => {
   if (IS_WINDOWS) {
-    return path.replace(/\//g, "\\");
+    return path.replace("./", basePath).replace(/\//g, "\\");
   }
   return path;
 };
