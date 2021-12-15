@@ -698,7 +698,8 @@ const getPackageFile = (listOfMembers) => {
   }
 
   // delete temp files
-  if (IS_WINDOWS) {
+  // Added comment to have backup of all metadata for testing purpose
+  /* if (IS_WINDOWS) {
     // delete directory on windows
     execSync(`rmdir /s /q ${convertUnixPathToWindows("./" + TEMP_DIR)}`, {
       stdio: "inherit",
@@ -707,6 +708,6 @@ const getPackageFile = (listOfMembers) => {
     execSync(`rm -rf ${convertUnixPathToWindows("./" + TEMP_DIR)}`, {
       stdio: "inherit",
     });
-  }
+  }*/
   console.log("Done");
 })();
