@@ -690,8 +690,8 @@ const getPackageFile = (listOfMembers) => {
   if (dependenciesResult) {
     console.log("Restoring dependencies");
     execSync(
-      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -d ${convertUnixPathToWindows(
-        "./" + TEMP_DIR + "/dependentMetadataBackup/unpackaged"
+      `sfdx force:mdapi:deploy -w 30 -u ${SANDBOX_ALIAS} -f ${convertUnixPathToWindows(
+        "./" + TEMP_DIR + "/dependentMetadataBackup/unpackaged.zip"
       )}`,
       { stdio: "inherit" }
     );
