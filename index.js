@@ -69,7 +69,7 @@ const LWC_CARD_EXTENSION_IMPORT_REGEX = new RegExp(
   "g"
 );
 const LWC_CARD_EXTENSION_EXTENDS_REGEX = `extends FlexiCard`;
-const OVERRIDE_REGEX = ` override `;
+const OVERRIDE_REGEX = new RegExp(` override `, "g");
 const removeFileExtension = (fileName) => {
   const extension = fileName.split(".").pop();
   return fileName.replace(`.${extension}`, "");
